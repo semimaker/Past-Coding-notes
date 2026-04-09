@@ -1,0 +1,74 @@
+#include <iostream>
+#include <conio.h> // _getch
+
+using namespace std;
+
+/*
+0: 벽, 1: 길, 2: 시작점, 3: 도착점
+*/
+void SetMaze(char Maze[21][21])
+{
+	strcpy_s(Maze[0], "21100000000000000000");
+	strcpy_s(Maze[1], "00111111111100000000");
+	strcpy_s(Maze[2], "00100010000111111100");
+	strcpy_s(Maze[3], "01100010000000000100");
+	strcpy_s(Maze[4], "01000011110001111100");
+	strcpy_s(Maze[5], "01000000011111000000");
+	strcpy_s(Maze[6], "01100000010000000000");
+	strcpy_s(Maze[7], "00110000011111111000");
+	strcpy_s(Maze[8], "00000000000000001113");
+	strcpy_s(Maze[9], "21100000000000000000");
+	strcpy_s(Maze[10],"21100000000000000000");
+	strcpy_s(Maze[11],"21100000000000000000");
+	strcpy_s(Maze[12],"21100000000000000000");
+	strcpy_s(Maze[13],"21100000000000000000");
+	strcpy_s(Maze[14],"21100000000000000000");
+	strcpy_s(Maze[15],"21100000000000000000");
+	strcpy_s(Maze[16],"21100000000000000000");
+	strcpy_s(Maze[17],"21100000000000000000");
+	strcpy_s(Maze[18], "21100000000000000000");
+	strcpy_s(Maze[19], "21100000000000000000");//Alt + Shift 
+}
+void Output(char Maze[21][21])
+{
+	for (int i = 0; i < 20; ++i)
+	{
+		for (int j = 0; j < 20; ++j)
+		{
+			if (Maze[i][j] == '0')
+				cout << "■";
+
+			else if (Maze[i][j] == '1')
+				cout << "○"; 
+
+			else if (Maze[i][j] == '2')
+				cout << "★";
+
+			else if (Maze[i][j] == '3')
+				cout << "◎";
+		}
+		cout << endl;
+	}
+}
+
+int main(){
+
+	//20 X 20 미로
+	char strMaze[21][21] = {};
+	//미로를 설정
+	SetMaze(strMaze);
+	char cInput;
+	
+
+	while(true)
+	{
+		system("cls");
+		Output(strMaze);
+		cout << "w : 위 s : 아래 a : 왼쪽 d : 오른쪽 q : 종료 : ";
+		
+		char   cInput = _getch();
+		if(cInput == 'q' || cInput == 'Q')
+			break;
+	}
+	return 0;
+}
