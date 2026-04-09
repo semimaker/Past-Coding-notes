@@ -1,0 +1,15 @@
+#include "Core.h"
+
+int main()
+{
+	if (!CCore::Getlnst()->Init())
+	{
+		CCore::DestoryInst();
+		return 0;
+	}
+	
+	CCore::Getlnst()->Run();
+
+	CCore::DestoryInst();
+	return 0;
+}

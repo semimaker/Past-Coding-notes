@@ -1,0 +1,32 @@
+#pragma once
+#include "value.h"
+#include "Macro.h"
+
+class CStageManager
+{
+private:
+	CStageManager();
+	~CStageManager();
+
+private:
+	static CStageManager* m_plnst;
+
+public:
+	static CStageManager* Getlnst()
+	{
+		if (!m_plnst)
+			m_plnst = new CStageManager;
+		return m_plnst;
+	}
+	static void Destorylnst()
+	{
+		SAFE_DELETE(m_plnst);
+	}
+
+private:
+	class CStage* m_pCurStage;
+
+public:
+	bool Init();
+	void Run();
+};
