@@ -9,6 +9,7 @@
 |-----------|-----------|------|
 | 2023.05 ~ 2023.07 |SW 국비교육을 위한 연습|Harman semi academy education| 
 | 2023.11.05 | Small coding test | 인프런 |
+| 2023.10. ~ 2024.04.27| TextRPG with C++ make |인프런|
 | 2024.01.27 ~ 2024.02.15 | Learning Theory | 인프런 |
 | 2024.10.07 ~ 2024.10.10 | Mini Project | 게임 플밍 마스터 |
 
