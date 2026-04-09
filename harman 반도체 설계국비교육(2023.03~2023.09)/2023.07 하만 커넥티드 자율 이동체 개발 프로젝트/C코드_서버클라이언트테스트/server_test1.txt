@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#define RASPBERRY_PI_PORT 2023
+
+void error_handling(char *message);
+
+int main()
+{
+    int server_socket;
+    int client_socket;
+    struct sockaddr_in server_addr;
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_size;
+
+    char message[1024];
+    int str_len;
+
+    server_socket = socket(PF_INET, SOCK_STREAM, 0);
+    if (server_socket == -1)
+        error_handling("socket() error");
+
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port = htons(RASPBERRY_PI_PORT);
+
+    if (bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
+        error_handling("bind() error");
+
+    if (listen(server_socket, 5) == -1)
+        error_handling("listen() error");
+
+    printf("라즈베리파이 서버가 %d 포트에서 대기 중입니다...\n", RASPBERRY_PI_PORT);
+
+	while(1)
+	{	
+	    client_addr_size = sizeof(client_addr);
+	    client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &client_addr_size);
+	    if (client_socket == -1)
+	    {
+		    error_handling("accept() error");
+		    continue;
+	    }
+	    char buffer[1024];
+		
+	    while ((str_len = read(client_socket, buffer, sizeof(buffer) - 1)) > 0)
+	    {
+            buffer[str_len] = '\0';
+            printf("수신된 메시지: %s\n", buffer);
+
+            // 클라이언트에게 응답 메시지 전송
+            write(client_socket, buffer, str_len);
+	    }
+	    if (str_len == 0)
+            printf("클라이언트와의 연결이 끊어졌습니다.\n");
+	    else if (str_len == -1)
+            error_handling("read() error");
+	
+	/*    str_len = read(client_socket, buffer, sizeof(buffer) - 1);
+	    if (str_len == -1)
+		    error_handling("read() error");
+
+	    buffer[str_len] = '\0';
+	    printf("수신된 메시지: %s\n", buffer);*/
+
+	    close(client_socket);
+	}
+    close(server_socket);
+    return 0;
+}
+
+void error_handling(char *message)
+{
+    fputs(message, stderr);
+    fputc('\n', stderr);
+    exit(1);
+}

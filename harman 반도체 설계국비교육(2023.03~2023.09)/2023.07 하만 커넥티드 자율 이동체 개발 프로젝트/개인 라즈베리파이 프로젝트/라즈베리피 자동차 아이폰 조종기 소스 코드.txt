@@ -1,0 +1,55 @@
+자료 출처 블로그 : https://m.blog.naver.com/ziefer/220657042464
+char message;
+int sockfd = server();
+
+   while(1) {
+
+        message = readMessage(sockfd);
+
+        printf( "got %c\n", message );
+
+        switch(message) {
+
+            case 'w':
+
+                forward();
+
+                break;
+
+            case 's':
+
+                stop();
+
+                break;
+
+            case 'a':
+
+                leftTurn();
+
+                break;
+
+            case 'd':
+
+                rightTurn();
+
+                break;
+
+            case 'x':
+
+                backward();
+
+                break;
+
+            case 'u':
+
+                if (checkArea()) {
+
+                    sendMessage(sockfd, 'T');
+
+                } else {
+
+                    sendMessage(sockfd, 'F');
+
+                }
+
+                break;

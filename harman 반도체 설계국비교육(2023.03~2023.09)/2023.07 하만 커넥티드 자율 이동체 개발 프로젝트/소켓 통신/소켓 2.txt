@@ -1,0 +1,64 @@
+물론입니다! 여기에는 C#을 사용하여 자율주행 자동차를 스마트폰으로 조종하는 또 다른 예제 코드 몇 가지를 제공합니다. 각 예제 코드에는 주석이 상세하게 달려 있으며, 기능을 확장하고 개선할 수 있도록 구조가 유연하게 설계되었습니다.
+
+예제 1: 실시간 비디오 스트리밍
+csharp
+Copy code
+using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
+public class AutonomousCarController
+{
+    private Socket socket;
+    private const int port = 8080;
+    private bool isStreaming;
+    
+    public AutonomousCarController()
+    {
+        socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+    }
+
+    public void ConnectToSmartphone(string ipAddress)
+    {
+        try
+        {
+            IPAddress serverIP = IPAddress.Parse(ipAddress);
+            IPEndPoint serverEndPoint = new IPEndPoint(serverIP, port);
+            socket.Connect(serverEndPoint);
+            Console.WriteLine("Connected to smartphone at: " + socket.RemoteEndPoint);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Failed to connect to smartphone: " + e.Message);
+        }
+    }
+
+    public void StartStreaming()
+    {
+        isStreaming = true;
+        Thread streamThread = new Thread(SendVideoStream);
+        streamThread.Start();
+    }
+
+    public void StopStreaming()
+    {
+        isStreaming = false;
+    }
+
+    private void SendVideoStream()
+    {
+        // 비디오 스트리밍 코드를 구현하세요.
+        // 스마트폰 애플리케이션으로부터 비디오 데이터를 받아서 전송합니다.
+        while (isStreaming)
+        {
+            // 비디오 데이터를 전송하는 로직을 여기에 추가하세요.
+            // 예를 들면, 이미지 프레임을 압축하고 소켓을 통해 스마트폰으로 전송합니다.
+        }
+    }
+    
+    // ...
+    // 다른 메서드들은 이전 예제와 동일하게 유지합니다.
+}
+이 예제 코드는 실시간 비디오 스트리밍을 추가한 버전입니다. StartStreaming 메서드를 호출하면 자동차는 비디오 데이터를 스마트폰으로 전송하기 시작합니다. SendVideoStream 메서드에서는 비디오 데이터를 전송하는 로직을 구현해야 합니다. 실제 구현은 비디오 프레임을 압축하고 소켓을 통해 스마트폰으로 전송하는 방식으로 이루어집니다.

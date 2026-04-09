@@ -1,0 +1,28 @@
+#include "Core.h"
+#include "StageManager.h"
+
+CCore* CCore::m_plnst = NULL;
+
+CCore::CCore()
+{
+
+}
+
+CCore::~CCore()
+{
+	CStageManager::Destorylnst();
+}
+
+bool CCore::Init()
+{
+	//스테이지 관리자를 초기화한다.
+	if(!CStageManager::Getlnst()->Init())
+		return false;
+
+	return true;
+}
+
+void CCore::Run()
+{
+	CStageManager::Getlnst()->Run();
+}

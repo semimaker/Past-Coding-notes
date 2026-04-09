@@ -1,0 +1,24 @@
+
+
+
+    while(1) {
+        // 초음파 센서로부터 거리 측정
+       
+
+        // 거리에 따라 주행 제어
+        if (100*dist >= 100 ) {
+            duty = 110;
+	MotorControl(FORWARD_, duty);  // 전진
+        } else if (100*dist  <= 50 && dist_R<dist_L ) {
+	 stop
+	delay(100)
+        while(100*dist  <= 50 && dist_R<dist_L)
+            MotorControl(LEFT_ROTATE_, duty);  // 좌회전
+        } else if (100*dist  <= 50 && dist_L<dist_R) {
+            turnRight(); // 우회전
+        } else if (100*dist<20 && dist_L<20 && dist_R<20){
+	
+         MotorControl(BACK_ROTATE_, duty);  // 후진
+        }
+    }
+

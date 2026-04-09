@@ -1,0 +1,167 @@
+
+/*구조체 : 관련 있는 변수들을 모아서 하나의 새로운 타입들을 만들어주는 기능.
+사용자정의 변수타입이다.
+형태 : struct 구조체명 {}; */
+
+#include <iostream>
+
+using namespace std;
+#define STUDENT_MAX 10
+#define NAME_SIZE 32 // 여기를 통해서 구조체의 배열의 길이를 통일할 수 있다. 
+#define ADDRESS_SIZE 128
+#define PHONE_SIZE  14//000 0000 0000
+
+struct _tagStudent{
+	int iKor;
+	int iEng;
+	int iNumber;
+	int iMath;
+	int iTotal; //4byte X5 = 20byte
+	float fAVg; //4byte 
+	char strName[NAME_SIZE]; // 32byte 배열의 길이, 몇 글자를 넣을 거냐?
+	char strAddress[ADDRESS_SIZE];
+	char strPhoneNumber[PHONE_SIZE];
+};
+//총 52byte을 잡아놓고 하나인 것처럼 분할하여 실행.
+enum MENU
+{
+	MENU_NONE,
+	MENU_INSERT,
+	MENU_DELETE,
+	MENU_SEARCH,
+	MENU_OUTPUT,
+	MENU_EXIT
+};
+int main()
+{
+
+	_tagStudent tStudentArr[STUDENT_MAX] = {};
+	int iStudentCount = 0; // 처음에 추가된 사람 수 : 0명.
+	int iStdNumber = 1;
+	char strName[NAME_SIZE] = {};
+
+	while (true)
+	{
+		system("cls");	
+	//메뉴를 출력한다.	
+		cout << "비교할 이름을 입력하세요 : ";
+		cout << "1. 학생등록" << endl;
+		cout << "2. 학생삭제" << endl;
+		cout << "3. 학생탐색" << endl;
+		cout << "4. 학생출력" << endl;
+		cout << "5. 종료" << endl;
+		cout << "메뉴를 선택하세요 : " << endl;
+		int iMenu; //자동으로 정수를 입력받음. 실수에서 잘못 입력시 입력 error 발생. 다시 입력할 수 없게한다.
+		cin >> iMenu; 
+		//cin은 우측에 int 변수가 오면 정수를 입력하고, 실수로 정수가 아닌 문자 입력시 에러 발생. 
+		//그렇기 때문에 예외처리로 에러가 발생했는지 여기서 체크하여 cin 에러버퍼를 비워주고 
+		// 내부의 입력버퍼로 값을 저장하고 그 값을 변수에 넣어준다. 그리고 이 입력버퍼에 \n 이 남아 있으므로 순회하여 지운다.
+		// 버퍼 : 임시저장공간, -> 에러 체크 -> 발생 시 true 을 반환한다. 
+		if (cin.fail())
+		{
+			cin.clear();//에러 버퍼를 비워둔다. 
+			//입력 버퍼에 \n이 남아 있으면 버퍼를 검색하여 \n을 지워준다.
+			//첫번째에는 검색하고자 하는 버퍼 크기를 저장,(1024바이트)
+			//두번쨰는 찾고자 하는 문자를 넣어준다. 그래서 입력버퍼 처음부터 \n까지 있는 곳을 찾아서 모두 지워줘서 다시 입력받을 수 있게 한다.
+
+			cin.ignore(1024, '\n');
+			continue;
+		}
+		
+		//실제기능 작업.
+		if (iMenu == MENU_EXIT)
+			break; //while 문 안의 스위치
+		switch (iMenu)
+		{
+		case MENU_INSERT: 
+			system("cls");
+			cout << "================== 학생추가 =================" << endl;
+			// Insert에서 추가할 시 학생 정보를 추가. 정보는 학번/이름/주소/전화번호.
+			//국/수/영 점수는 받고, 학번/총점/평균은 연산으로 계산. 이름도 입력받음.
+			cout << "이름 :";
+			cin >> tStudentArr[iStudentCount].strName;
+			cin.ignore(1024, '\n');
+			
+			cout << "주소:";
+			cin.getline(tStudentArr[iStudentCount].strAddress, ADDRESS_SIZE);
+			cout << "전화번호" << endl;
+			cin.getline(tStudentArr[iStudentCount].strPhoneNumber, PHONE_SIZE);
+			cout << "국어 : ";
+			cin >> tStudentArr[iStudentCount].iKor;
+			cout << "영어 : ";
+			cin >> tStudentArr[iStudentCount].iEng;
+			cout << "수학 : ";
+			cin >> tStudentArr[iStudentCount].iMath;
+			
+			tStudentArr[iStudentCount].iTotal =
+				tStudentArr[iStudentCount].iKor +
+				tStudentArr[iStudentCount].iEng +
+				tStudentArr[iStudentCount].iMath;
+				tStudentArr[iStudentCount].fAVg =
+				tStudentArr[iStudentCount].iTotal / 3.f;
+
+				tStudentArr[iStudentCount].iNumber = iStdNumber;
+
+				++iStdNumber;
+				++iStudentCount;
+
+				cout << "학생 추가 완료" << endl;
+				break;	 
+		case MENU_DELETE:
+				break;
+		case MENU_SEARCH:
+			system("cls");
+			
+			cout << "================= 학생탐색 ===============" << endl;
+			//char strSearchName[NAME_SIZE] = {};
+
+			cin.ignore(1024, '\n');
+			cout << "탐색할 이름을 입력하세요 : ";
+			cin.getline(strName, NAME_SIZE);
+			for (int i = 0; i < iStudentCount; ++i)
+			{
+				if (strcmp(tStudentArr[i].strName, strName) == 0)
+				{	
+					for (int j = i; j < iStudentCount - 1; ++j) {
+						tStudentArr[i] = tStudentArr[i + 1];
+					}
+
+					--iStudentCount;
+				}
+				cout << "학생을 삭제하였습니다." << endl;
+				break;
+			}
+			break;
+
+		case MENU_OUTPUT:
+			system("cls");
+			cout <<"================= 학생출력 ==============" << endl;
+
+			//등록된 학생의 재등록을 방지. 등록된 학생 수만큼 반복하며 학생 정보를 출력.
+			for (int i = 0; i < iStudentCount; ++i)
+			{
+				cout << "이름 : " << tStudentArr[i].strName << endl;
+				cout << "전화번호 : " << tStudentArr[i].strPhoneNumber << endl;
+				cout << "주소 : " << tStudentArr[i].strAddress << endl;
+				cout << "학번 : " << tStudentArr[i].iNumber << endl;
+				cout << "국어 : " << tStudentArr[i].iKor << endl;
+				cout << "영어 : " << tStudentArr[i].iEng << endl;
+				cout << "수학 : " << tStudentArr[i].iMath << endl;
+				cout << "총점 : " << tStudentArr[i].iTotal << endl;
+				cout << "평균 : " << tStudentArr[i].fAVg << endl << endl;
+			}
+		default :
+			cout << "메뉴를 잘못 선택했습니다." << endl;
+			break;
+		}
+	
+		system("pause");
+	}
+
+	return 0;
+}
+
+//배열과 구조체의 공통점 : 
+// 1. 데이터의 집합이다. 
+// 2. 연속된 메모리 블럭에 할당된다. 구조체 멤버들은 연속된 블럭으로 할당.
+

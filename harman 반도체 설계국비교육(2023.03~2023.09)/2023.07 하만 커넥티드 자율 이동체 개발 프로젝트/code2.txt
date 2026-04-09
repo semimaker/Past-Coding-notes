@@ -1,0 +1,46 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace CommClient
+{
+    public partial class Form1 : Form
+    {
+        Socket sock = null;
+        private string e1;
+        private string message;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void btnstart_Click(object sender, EventArgs e)
+        {
+            if (sock == null) 
+            {
+                try
+                {
+                    sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp); //connection 동작이 필요로 한다. IPv4을 거의 많이 씀
+                    //IPv6의 경우 현재는 switching 에서만 사용. socketType은 tcp으로서 사용. 앞의 stream은 소켓을 어떤 타입으로 할 것인지를 생각.
+                    //이와 같은 요소들을 통하여 연결 동작을 맞추어야 한다. 
+                    sock.Connect("127.0.0.1", 9000); //connect 연결에 있어서는 return 값을 받을 필요가 없음. 
+                    tbClient.Text += "server connected..../n";
+                }
+                catch (Exception e1)
+                {
+                    MessageBox.Show(e1.Message);
+                    sock = null;
+                }
+            }
+
+        }
+    }
+}

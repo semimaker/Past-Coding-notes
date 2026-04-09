@@ -1,0 +1,60 @@
+#include <wiringPi.h>
+
+// GPIO 핀 번호 정의
+#define S0 0 // WiringPi 핀 번호
+#define S1 1 // WiringPi 핀 번호
+#define S2 2 // WiringPi 핀 번호
+#define S3 3 // WiringPi 핀 번호
+#define OUT 4 // WiringPi 핀 번호
+
+void setup() {
+    wiringPiSetup(); // WiringPi 초기화
+
+    // GPIO 핀 모드 설정
+    pinMode(S0, OUTPUT);
+    pinMode(S1, OUTPUT);
+    pinMode(S2, OUTPUT);
+    pinMode(S3, OUTPUT);
+    pinMode(OUT, INPUT);
+}
+
+void setColorMode() {
+    digitalWrite(S2, LOW);
+    digitalWrite(S3, LOW);
+}
+
+void loop() {
+    setColorMode(); // 컬러 측정 모드로 설정
+
+    // S0, S1 핀을 LOW로 설정하여 100% 스케일로 설정 (컬러 필터 무시)
+    digitalWrite(S0, LOW);
+    digitalWrite(S1, LOW);
+
+    // 측정 시작
+    int red = pulseIn(OUT, HIGH); // 빨간색 측정
+    int green = pulseIn(OUT, HIGH); // 초록색 측정
+    int blue = pulseIn(OUT, HIGH); // 파란색 측정
+
+    // 결과 출력
+    printf("Red: %d, Green: %d, Blue: %d\n", red, green, blue);
+
+    delay(1000); // 1초 간격으로 측정
+}
+
+int main(void) {
+    setup();
+
+    while (1) {
+        loop();
+    }
+
+    return 0;
+}
+
+VCC -> 3.3V (또는 5V)
+GND -> GND
+S0 -> GPIO 핀 (예: 17)
+S1 -> GPIO 핀 (예: 18)
+S2 -> GPIO 핀 (예: 27)
+S3 -> GPIO 핀 (예: 22)
+OUT -> GPIO 핀 (예: 23)

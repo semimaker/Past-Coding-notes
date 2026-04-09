@@ -1,0 +1,98 @@
+using System;
+using System.Net.Sockets;
+using Xamarin.Forms;
+
+namespace RemoteControlApp
+{
+    public partial class MainPage : ContentPage
+    {
+        private TcpClient client;
+        private NetworkStream stream;
+        private bool isConnected;
+
+        public MainPage()
+        {
+            InitializeComponent();
+            isConnected = false;
+        }
+
+        private void ConnectButton_Clicked(object sender, EventArgs e)
+        {
+            if (!isConnected)
+            {
+                try
+                {
+                    client = new TcpClient("YOUR_RASPBERRY_PI_IP_ADDRESS", 1234); // 라즈베리파이의 IP 주소와 포트 번호로 변경해주세요.
+                    stream = client.GetStream();
+                    isConnected = true;
+                    ConnectButton.Text = "Disconnect";
+                }
+                catch (Exception ex)
+                {
+                    DisplayAlert("Error", ex.Message, "OK");
+                }
+            }
+            else
+            {
+                Disconnect();
+            }
+        }
+
+        private void Disconnect()
+        {
+            if (isConnected)
+            {
+                stream.Close();
+                client.Close();
+                isConnected = false;
+                ConnectButton.Text = "Connect";
+            }
+        }
+
+        private void UpButton_Pressed(object sender, EventArgs e)
+        {
+            if (isConnected)
+            {
+                byte[] data = System.Text.Encoding.ASCII.GetBytes("UP");
+                stream.Write(data, 0, data.Length);
+            }
+        }
+
+        private void DownButton_Pressed(object sender, EventArgs e)
+        {
+            if (isConnected)
+            {
+                byte[] data = System.Text.Encoding.ASCII.GetBytes("DOWN");
+                stream.Write(data, 0, data.Length);
+            }
+        }
+
+        private void LeftButton_Pressed(object sender, EventArgs e)
+        {
+            if (isConnected)
+            {
+                byte[] data = System.Text.Encoding.ASCII.GetBytes("LEFT");
+                stream.Write(data, 0, data.Length);
+            }
+        }
+
+        private void RightButton_Pressed(object sender, EventArgs e)
+        {
+            if (isConnected)
+            {
+                byte[] data = System.Text.Encoding.ASCII.GetBytes("RIGHT");
+                stream.Write(data, 0, data.Length);
+            }
+        }
+
+        private void Button_Released(object sender, EventArgs e)
+        {
+            if (isConnected)
+            {
+                byte[] data = System.Text.Encoding.ASCII.GetBytes("STOP");
+                stream.Write(data, 0, data.Length);
+            }
+        }
+    }
+}
+//간단한 스마트폰 원격 조종 앱. 

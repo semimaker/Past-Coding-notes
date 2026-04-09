@@ -1,0 +1,245 @@
+#include <wiringPi.h>
+#include <softPwm.h>
+#include <stdio.h>
+
+// Motor pin 설정
+#define MOTOR_MT_N1_PIN 9	//앞왼
+#define MOTOR_MT_P1_PIN 4
+#define MOTOR_MT_N2_PIN 15	//앞오
+#define MOTOR_MT_P2_PIN 10
+#define MOTOR_MT_N3_PIN 13	//뒤왼
+#define MOTOR_MT_P3_PIN 18
+#define MOTOR_MT_N4_PIN 25	//뒤오
+#define MOTOR_MT_P4_PIN 20
+
+#define pinTrig 26
+#define pinEcho 27
+#define pinTrigR 12
+#define pinEchoR 17
+#define pinTrigL 11
+#define pinEchoL 16
+
+// Motor 회전 방향 정의
+#define LEFT_ROTATE 1
+#define RIGHT_ROTATE 2
+#define BACK_ROTATE 3
+#define FRONT_ROTATE 4
+
+struct Control
+{
+  int Direction;
+  int MotorDuty;
+};
+// ----------------------------------------------------------
+// Motor 정지 함수
+// softPwmWrite : 생성된 PWM핀을 통해 1의 지속시간을 변경해 duty cycle 변경
+void MotorStop()
+{
+  softPwmWrite(MOTOR_MT_N1_PIN, 0);	softPwmWrite(MOTOR_MT_P1_PIN, 0);
+  softPwmWrite(MOTOR_MT_N2_PIN, 0);	softPwmWrite(MOTOR_MT_P2_PIN, 0);
+  softPwmWrite(MOTOR_MT_N3_PIN, 0);	softPwmWrite(MOTOR_MT_P3_PIN, 0);
+  softPwmWrite(MOTOR_MT_N4_PIN, 0);	softPwmWrite(MOTOR_MT_P4_PIN, 0);
+}
+// ----------------------------------------------------------
+// Motor 속도 및 방향 조절 함수
+void MotorControl(int rotate, int speed)
+{
+	// Left rotation
+    if(rotate==LEFT_ROTATE)
+    {
+    	digitalWrite(MOTOR_MT_N1_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P1_PIN, speed);
+        //왼쪽 
+        digitalWrite(MOTOR_MT_N2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P2_PIN, speed);
+        //오른쪽        
+        digitalWrite(MOTOR_MT_N3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P3_PIN, speed);
+        //오른쪽
+        digitalWrite(MOTOR_MT_P4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N4_PIN, speed);
+        //왼쪽
+    }
+    
+    else if(rotate==RIGHT_ROTATE)
+    {
+        digitalWrite(MOTOR_MT_P1_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N1_PIN, speed);
+        //왼쪽
+        digitalWrite(MOTOR_MT_P2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N2_PIN, speed);
+        //오른쪽        
+        digitalWrite(MOTOR_MT_P3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N3_PIN, speed);
+        //오른쪽
+        digitalWrite(MOTOR_MT_N4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P4_PIN, speed);
+        //왼쪽        
+    }
+	
+    else if(rotate==BACK_ROTATE)
+    {
+        digitalWrite(MOTOR_MT_N1_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P1_PIN, speed);
+        //왼쪽
+        digitalWrite(MOTOR_MT_P2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N2_PIN, speed);
+        //오른쪽
+        digitalWrite(MOTOR_MT_P3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N3_PIN, speed);
+        //오른쪽
+        digitalWrite(MOTOR_MT_P4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N4_PIN, speed);
+        //왼쪽   
+    }
+    
+    else
+    {
+	digitalWrite(MOTOR_MT_P1_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N1_PIN, speed);
+        //왼쪽
+        digitalWrite(MOTOR_MT_N2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P2_PIN, speed);
+        //오른쪽
+        digitalWrite(MOTOR_MT_N3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P3_PIN, speed);
+        //오른쪽
+        digitalWrite(MOTOR_MT_N4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P4_PIN, speed);
+        //왼쪽
+    }
+
+}
+// ----------------------------------------------------------
+// 초음파 센서 제어 함수
+double UltraSonic(int Trig, int Echo)
+{
+	long t1, t2;
+	double dist;
+	
+	digitalWrite(Trig, 0);	//low신호로 trigger 시간을 기다림. 	
+	delayMicroseconds(2);		//2us동안 지속
+	digitalWrite(Trig, 1);	//trigger 신호 날리기 . high로 보내기 (10us의 펄스)	
+	delayMicroseconds(10);
+	digitalWrite(Trig, 0);
+	delayMicroseconds(200);		//200us동안 low로 유지
+	
+	while(digitalRead(Echo) == 0); //echo가 1일때까지 반복
+
+	//echo 신호 monitoring 
+	t1 = micros();			//micros: micro 단위의 현재시간을 저장
+	
+	while(digitalRead(Echo) == 1); //echo가 0일때까지 반복	
+	t2 = micros();
+	dist = (t2 - t1) * 0.034 / 2;	//음파속도와 t1,t2의 차이를 이용해 거리 구하기
+	return dist;
+}  
+// ----------------------------------------------------------
+// 센서 거리 기반 모터 상태 결정 함수
+struct Control DrivingState(double dist,double distL,double distR)
+{
+	struct Control State;
+	
+	if( dist >= 100 )
+	{
+	  State.Direction = 4; State.MotorDuty = 100;
+	  printf("Go, Fast\n");
+	}
+	else if( dist >= 25 && dist <= 100 )
+	{
+	  State.Direction = 4; State.MotorDuty = 50;
+	  printf("Go, Slow\n");
+	}
+	else if( dist < 25 && distL < 25 && distR < 25 )
+	{
+	  State.Direction = 3; State.MotorDuty = 50;
+	  printf("Stucked! Go Back\n");
+	}
+	else if( dist < 25 && distL < distR)
+	{
+	  State.Direction = 2; State.MotorDuty = 75;
+	  printf("Turn Right\n");
+	}
+	else if( dist < 25 && distL > distR)
+	{
+	  State.Direction = 1; State.MotorDuty = 75;
+	  printf("Turn Left\n");	  
+	}
+	
+	return State;
+	//구조체 반환, Motor Duty, Direction 한번에 반환하기 위해 함수형을 구조체로 선언함.
+	
+}
+// ----------------------------------------------------------
+// 센서 거리 기반 모터 제어 함수
+void MotorState(struct Control Status)
+{
+	  switch(Status.Direction)
+	  {
+		  case 1: 
+			
+			MotorStop();
+			MotorControl(Status.Direction,Status.MotorDuty);
+			break;
+		  case 2:
+			
+			MotorStop();
+			MotorControl(Status.Direction,Status.MotorDuty);
+			break;
+		  case 3:
+			
+			MotorStop();
+			MotorControl(Status.Direction,Status.MotorDuty);
+			break;
+		  case 4:
+			
+			MotorStop();
+			MotorControl(Status.Direction,Status.MotorDuty);
+			break;
+		  case 5:
+			
+			MotorStop();
+			break;
+	  }
+
+	
+}
+// ----------------------------------------------------------
+int main(void)
+{
+  if (wiringPiSetupGpio() == -1)
+  		return 1;
+  //State 변수  
+  struct Control Current;
+  double dist,dist_L,dist_R;
+
+  // 초음파 Trig, Echo 입출력으로 설정
+  pinMode(pinTrig, OUTPUT);  pinMode(pinEcho, INPUT);
+  pinMode(pinTrigL, OUTPUT);  pinMode(pinEchoL, INPUT);  
+  pinMode(pinTrigR, OUTPUT);  pinMode(pinEchoR, INPUT);  
+
+  // Motor 핀 출력으로 설정
+  pinMode(MOTOR_MT_N1_PIN, OUTPUT);  pinMode(MOTOR_MT_P1_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N2_PIN, OUTPUT);  pinMode(MOTOR_MT_P2_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N3_PIN, OUTPUT);  pinMode(MOTOR_MT_P3_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N4_PIN, OUTPUT);  pinMode(MOTOR_MT_P4_PIN, OUTPUT);
+
+  // Motor 핀 PWM 제어 핀으로 설정, 주기: 128ms
+  //softPwmCreate : 소프트웨어로 제어하는 PWM핀 생성 함수
+  softPwmCreate(MOTOR_MT_N1_PIN, 0, 128);  softPwmCreate(MOTOR_MT_P1_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N2_PIN, 0, 128);  softPwmCreate(MOTOR_MT_P2_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N3_PIN, 0, 128);  softPwmCreate(MOTOR_MT_P3_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N4_PIN, 0, 128);  softPwmCreate(MOTOR_MT_P4_PIN, 0, 128);
+  
+  while(1)
+  {
+    dist = UltraSonic(pinTrig,pinEcho);
+    dist_L = UltraSonic(pinTrigL,pinEchoL);
+    dist_R = UltraSonic(pinTrigR,pinEchoR);
+    printf("Front : %.2f, Left : %.2f, Right : %.2f\n",dist,dist_L,dist_R);
+    Current = DrivingState(dist,dist_L,dist_R);
+    MotorState(Current);
+    delay(350);
+  //While Loop 반복 주기 설정
+  }
+}

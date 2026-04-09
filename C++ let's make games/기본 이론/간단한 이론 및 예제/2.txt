@@ -1,0 +1,23 @@
+//2강, 변수(변하는 수, 값이 바뀔 수 있다)
+	//단위 : bit. 1byte = 8bit,1kbyte = 1024byte
+	//char /bool : 1byte, short = 2byte, int/float = 4byte, double = 8byte.
+
+	int Number = 10; // 대입연산자.
+	Number = 20;
+
+	cout << Number << endl;
+
+	bool bTest = true;
+	bTest = false;
+
+	cout << bTest << endl;
+
+	char cTest = 't';//문자 1개를 저장할 수 있다, 영문, 숫자는 1byte ,한글은 2byte.
+	//char변수 하나에 저장하기가 힘들다. 
+	cout << cTest << endl;
+
+	float fNumber = 3.14f;
+	cout << fNumber << endl;
+
+	double dNumber = 123.4567;
+	cout << dNumber << endl;

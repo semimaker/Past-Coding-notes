@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#define RASPBERRY_PI_PORT 2023
+
+void error_handling(char *message);
+
+int main()
+{
+    int client_socket;
+    struct sockaddr_in server_addr;
+    char message[1024];
+    int str_len;
+
+    client_socket = socket(PF_INET, SOCK_STREAM, 0);
+    if (client_socket == -1)
+        error_handling("socket() error");
+
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = inet_addr("169.254.224.13"); // 라즈베리파이의 IP 주소
+    server_addr.sin_port = htons(RASPBERRY_PI_PORT);
+
+    if (connect(client_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
+        error_handling("connect() error");
+    while(1)
+    {
+        char buffer[1024];
+        printf("전송할 메시지: ");
+        fgets(buffer, sizeof(buffer), stdin);
+        if(strcmp(buffer, "quit\n")==0)
+        {
+                printf("프로그램을 종료합니다.\n");
+                break;
+        }
+        write(client_socket, buffer, strlen(buffer));
+        
+        str_len = read(client_socket, buffer, sizeof(buffer) -1);
+        if(str_len == -1) error_handling("read() error");
+        buffer[str_len]='\0';
+        
+        printf("수신된 메시지 : %s\n", buffer);
+        
+    }
+    close(client_socket);
+    return 0;
+}
+
+void error_handling(char *message)
+{
+    fputs(message, stderr);
+    fputc('\n', stderr);
+    exit(1);
+}

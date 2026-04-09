@@ -1,0 +1,68 @@
+#include <stdio.h>
+#include <wiringPi.h>
+
+
+#define S2_PIN  4 // Raspberry Pi GPIO 핀 번호에 맞게 변경
+#define S3_PIN  5 // Raspberry Pi GPIO 핀 번호에 맞게 변경
+#define OUT_PIN 6 // Raspberry Pi GPIO 핀 번호에 맞게 변경
+
+void setupTCS3200() {
+    
+    pinMode(S2_PIN, OUTPUT);
+    pinMode(S3_PIN, OUTPUT);
+    pinMode(OUT_PIN, INPUT);
+}
+
+void setColorMode(int s2, int s3) {
+    digitalWrite(S2_PIN, s2);
+    digitalWrite(S3_PIN, s3);
+}
+
+unsigned long pulseIn(int pin, int state) {
+    unsigned long micros_start = micros();
+    while (digitalRead(pin) != state) {
+        if (micros() - micros_start > 1000000) // Timeout after 1 second
+            return 0;
+    }
+
+    micros_start = micros();
+    while (digitalRead(pin) == state) {
+        if (micros() - micros_start > 1000000) // Timeout after 1 second
+            return 0;
+    }
+
+    return micros() - micros_start;
+}
+
+int main() {
+    if (wiringPiSetup() == -1) {
+        printf("wiringPi setup failed!\n");
+        return 1;
+    }
+
+    setupTCS3200();
+
+    while(1) {
+        // Red
+        setColorMode(0, 1);
+        delay(100);
+        int redFreq = pulseIn(OUT_PIN, LOW);
+
+        // Green
+        setColorMode(1, 0);
+        delay(100);
+        int greenFreq = pulseIn(OUT_PIN, LOW);
+
+        // Blue
+        setColorMode(1, 1);
+        delay(100);
+        int blueFreq = pulseIn(OUT_PIN, LOW);
+
+        // Output the frequencies
+        printf("Red Frequency: %d, Green Frequency: %d, Blue Frequency: %d\n", redFreq, greenFreq, blueFreq);
+
+        delay(100);
+    }
+
+    return 0;
+}

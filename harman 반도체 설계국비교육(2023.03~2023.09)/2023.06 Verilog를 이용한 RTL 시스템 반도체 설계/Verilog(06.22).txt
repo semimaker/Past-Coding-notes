@@ -1,0 +1,663 @@
+<SPI 통신 버튼 제어>
+[source code]
+timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2023/06/22 09:03:23
+// Design Name: 
+// Module Name: btn_in
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module btn_in(
+    reset,
+    clock,
+    btn_in,
+    btn_out
+);
+input reset;
+input clock;
+input btn_in;
+output btn_out;
+
+//parameter max_cnt = 20'd1000000;//10ms
+parameter max_cnt =20'd1000;
+reg [19:0] cnt;
+always @(posedge clock or negedge reset)
+begin
+    if(~reset) cnt <= 20'b0;
+    else       cnt <= (cnt==max_cnt) ? 20'b0 : cnt+1'b1;
+end
+
+reg btn_1d, btn_2d;
+always @(posedge clock or negedge reset)
+begin
+    if(~reset) begin
+            btn_1d <=1'b0;
+            btn_2d <=1'b0;
+    end
+    else begin
+            btn_1d <= btn_in;
+            btn_2d <= btn_1d;
+    end
+end
+
+reg btn1, btn2;
+always @(posedge clock or negedge reset)
+begin
+    if(~reset) begin
+        btn1 <= 1'b0;
+        btn2 <= 1'b0;
+    end
+    else begin
+        btn1 <= (cnt == max_cnt) ? btn_2d : btn1;
+        btn2 <= (cnt == max_cnt) ? btn1 : btn2;
+    end
+end
+
+reg btn_out;
+always @(posedge clock or negedge reset)
+begin
+    if(~reset) btn_out <= 1'b0;
+    else       btn_out <= ((cnt == max_cnt) & btn1 & ~btn2) ? 1'b1 : 1'b0;
+end
+
+endmodule
+
+[test bench]
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2023/06/22 09:10:59
+// Design Name: 
+// Module Name: tb_btn_in
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module tb_btn_in();
+
+reg reset, clock;
+
+initial begin
+    reset = 0;
+    clock = 0;
+#10000 reset = 1;
+end
+
+always #5 clock =~clock;
+
+reg [15:0] cnt;
+always @(posedge clock or negedge reset)
+begin
+    if(~reset) cnt <= 16'b0;
+    else       cnt <= cnt+1'b1;
+end
+
+reg btn;
+always @(posedge clock or negedge reset)
+begin 
+    if(~reset) btn <= 1'b0;
+    else       btn <= (cnt == 16'd100 ) ? 1'b1 : (cnt == 16'd1200) ? 1'b0 : //1100
+                      (cnt == 16'd1300 ) ? 1'b1 : (cnt == 16'd1350) ? 1'b0 ://50
+                      (cnt == 16'd1400 ) ? 1'b1 : (cnt == 16'd1480) ? 1'b0 : //80
+                       
+                      (cnt == 16'd4200 ) ? 1'b1 : (cnt == 16'd5400) ? 1'b0 : //1200
+                      (cnt == 16'd5600 ) ? 1'b1 : (cnt == 16'd5700) ? 1'b0 : //100
+                      (cnt == 16'd5800 ) ? 1'b1 : (cnt == 16'd5900) ? 1'b0 : //100
+                      btn;   
+end
+
+wire btn_out;
+btn_in btn_in(
+    .reset(reset      ),
+    .clock(clock      ),
+    .btn_in(btn       ),
+    .btn_out(btn_out  )
+);
+
+endmodule
+
+[simulation]
+
+
+
+
+잘 안되어서 어떻게 하지 했는데, scope의 btn_in을 누르니까 원하는 소스들이 나와서 그걸 대입한 다음 run 0.1ms을 TCL Console에 적용시키니까 다음과 같은 시뮬레이션 결과가 나올 수 있었다. 
+
+<spi 통신 –4>부터
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2023/06/21 12:33:31
+// Design Name: 
+// Module Name: spi_slave
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+`define rUSER_REG1 8'h10
+`define rUSER_REG2 8'h11
+`define rUSER_REG3 8'h12
+`define rUSER_REG4 8'h13
+
+module spi_slave(
+    reset,
+    clock,
+    ss,
+    sck,
+    mosi,
+    miso
+);
+input reset;
+input clock;
+input ss;
+input sck;
+input mosi;
+output miso;
+
+parameter SLAVE_IDW = 8'h64;
+parameter SLAVE_IDR = 8'h65;
+
+parameter IDLE = 3'd0;
+parameter SLAVEID = 3'd1;
+parameter WADDR = 3'd2;
+parameter WDATA = 3'd3;
+parameter RADDR = 3'd4;
+parameter RDATA = 3'd5;
+parameter DONE = 3'd6;
+
+reg [2:0] s_state;
+wire s_idle = (s_state==IDLE) ? 1'b1 : 1'b0;
+wire s_slaveid = (s_state==SLAVEID) ? 1'b1 : 1'b0;
+wire s_waddr = (s_state==WADDR) ? 1'b1 : 1'b0;
+wire s_wdata = (s_state==WDATA) ? 1'b1 : 1'b0;
+wire s_raddr= (s_state==RADDR) ? 1'b1 : 1'b0;
+wire s_rdata= (s_state==RDATA) ? 1'b1 : 1'b0;
+wire s_done = (s_state==DONE) ? 1'b1 : 1'b0;
+
+reg ss_1d, ss_2d;
+wire ss_pedge = ss_1d & ~ss_2d;
+wire ss_nedge = ~ss_1d & ss_2d;
+always @(posedge clock or negedge reset)
+begin
+    if(!reset) begin
+            ss_1d <= 1'b1;
+            ss_2d <= 1'b1;
+    end
+    else begin
+            ss_1d <= ss;
+            ss_2d <= ss_1d;
+    end
+end
+
+reg sck_1d, sck_2d;
+wire sck_pedge = sck_1d & ~sck_2d;
+wire sck_nedge = ~sck_1d& sck_2d;
+always @(posedge clock or negedge reset)
+begin
+    if(!reset) begin
+        sck_1d <= 1'b0;
+        sck_2d <= 1'b0;
+    end
+    else begin
+        sck_1d <= sck;
+        sck_2d <= sck_1d;
+    end
+end   
+
+reg mosi_1d, mosi_2d;
+always @(posedge clock or negedge reset)
+begin
+    if(!reset) begin
+        mosi_1d <= 1'b0;
+        mosi_2d <= 1'b0;
+    end
+    else begin
+        mosi_1d <= mosi;
+        mosi_2d <= mosi_1d;
+    end
+end
+
+reg [3:0] sid_sckn_cnt;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) sid_sckn_cnt <= 4'b0;
+               sid_sckn_cnt <= ~s_slaveid ? 4'b0 : sck_nedge ? (sid_sckn_cnt+1'b1) : sid_sckn_cnt;
+end
+
+reg [7:0] slave_id;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) slave_id <= 8'b0;
+    else begin
+        slave_id[7] <= s_idle ? 1'b0 : (s_slaveid & sck_pedge & (sid_sckn_cnt== 4'd0)) ? mosi_2d : slave_id[7];
+        slave_id[6] <= s_idle ? 1'b0 : (s_slaveid & sck_pedge & (sid_sckn_cnt== 4'd1)) ? mosi_2d : slave_id[6];
+        slave_id[5] <= s_idle ? 1'b0 : (s_slaveid & sck_pedge & (sid_sckn_cnt== 4'd2)) ? mosi_2d : slave_id[5];
+        slave_id[4] <= s_idle ? 1'b0 : (s_slaveid & sck_pedge & (sid_sckn_cnt== 4'd3)) ? mosi_2d : slave_id[4];
+        slave_id[3] <= s_idle ? 1'b0 : (s_slaveid & sck_pedge & (sid_sckn_cnt== 4'd4)) ? mosi_2d : slave_id[3];
+        slave_id[2] <= s_idle ? 1'b0 : (s_slaveid & sck_pedge & (sid_sckn_cnt== 4'd5)) ? mosi_2d : slave_id[2];
+        slave_id[1] <= s_idle ? 1'b0 : (s_slaveid & sck_pedge & (sid_sckn_cnt== 4'd6)) ? mosi_2d : slave_id[1];
+        slave_id[0] <= s_idle ? 1'b0 : (s_slaveid & sck_pedge & (sid_sckn_cnt== 4'd7)) ? mosi_2d : slave_id[0];
+        
+    end
+end
+
+reg [3:0] wa_sckn_cnt;
+always @(posedge clock or negedge reset)
+    begin 
+    if(!reset) wa_sckn_cnt <= 4'b0;
+    else       wa_sckn_cnt <= ~s_waddr ? 4'b0 : sck_nedge ? (wa_sckn_cnt+1'b1) : wa_sckn_cnt;
+    end
+
+reg [7:0] waddr;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) waddr <= 8'b0;
+    else begin 
+        waddr[7] <= s_idle ? 1'b0 : (s_waddr & sck_pedge & (wa_sckn_cnt== 4'd0)) ? mosi_2d : waddr[7];
+        waddr[6] <= s_idle ? 1'b0 : (s_waddr & sck_pedge & (wa_sckn_cnt== 4'd1)) ? mosi_2d : waddr[6];
+        waddr[5] <= s_idle ? 1'b0 : (s_waddr & sck_pedge & (wa_sckn_cnt== 4'd2)) ? mosi_2d : waddr[5];
+        waddr[4] <= s_idle ? 1'b0 : (s_waddr & sck_pedge & (wa_sckn_cnt== 4'd3)) ? mosi_2d : waddr[4];
+        waddr[3] <= s_idle ? 1'b0 : (s_waddr & sck_pedge & (wa_sckn_cnt== 4'd4)) ? mosi_2d : waddr[3];
+        waddr[2] <= s_idle ? 1'b0 : (s_waddr & sck_pedge & (wa_sckn_cnt== 4'd5)) ? mosi_2d : waddr[2];
+        waddr[1] <= s_idle ? 1'b0 : (s_waddr & sck_pedge & (wa_sckn_cnt== 4'd6)) ? mosi_2d : waddr[1];
+        waddr[0] <= s_idle ? 1'b0 : (s_waddr & sck_pedge & (wa_sckn_cnt== 4'd7)) ? mosi_2d : waddr[0];
+    end
+end
+
+reg [3:0] wd_sckn_cnt;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) wd_sckn_cnt <=4'b0;
+    else       wd_sckn_cnt <= ~s_wdata ? 4'b0 : sck_nedge ? (wd_sckn_cnt+1'b1) : wd_sckn_cnt;
+end
+
+reg [7:0] wdata;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) slave_id <= 8'b0;
+    else begin 
+        wdata[7] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd0)) ? mosi_2d : wdata[7];
+        wdata[6] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd1)) ? mosi_2d : wdata[6];
+        wdata[5] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd2)) ? mosi_2d : wdata[5];
+        wdata[4] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd3)) ? mosi_2d : wdata[4];
+        wdata[3] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd4)) ? mosi_2d : wdata[3];
+        wdata[2] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd5)) ? mosi_2d : wdata[2];
+        wdata[1] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd6)) ? mosi_2d : wdata[1];
+        wdata[0] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd7)) ? mosi_2d : wdata[0];
+    end
+end
+reg [3:0] ra_sckn_cnt;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) ra_sckn_cnt <=4'b0;
+    else       ra_sckn_cnt <= ~s_wdata ? 4'b0 : sck_nedge ? (ra_sckn_cnt+1'b1) : ra_sckn_cnt;
+end
+reg [7:0] raddr;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) slave_id <= 8'b0;
+    else begin 
+        raddr[7] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd0)) ? mosi_2d : raddr[7];
+        raddr[6] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd1)) ? mosi_2d : raddr[6];
+        raddr[5] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd2)) ? mosi_2d : raddr[5];
+        raddr[4] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd3)) ? mosi_2d : raddr[4];
+        raddr[3] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd4)) ? mosi_2d : raddr[3];
+        raddr[2] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd5)) ? mosi_2d : raddr[2];
+        raddr[1] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd6)) ? mosi_2d : raddr[1];
+        raddr[0] <= s_idle ? 1'b0 : (s_wdata & sck_pedge & (wd_sckn_cnt== 4'd7)) ? mosi_2d : raddr[0];
+    end
+end
+
+reg s_raddr_1d, s_raddr_2d;
+wire s_raddr_nedge = ~s_raddr_1d & s_raddr_2d;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) begin
+        s_raddr_1d <= 1'b0;
+        s_raddr_2d <= 1'b0;
+    end
+    else begin
+        s_raddr_1d <= s_raddr;
+        s_raddr_2d <= s_raddr_1d;
+    end
+
+end
+
+reg  sck_nedge_1d;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) sck_nedge_1d <= 1'b0;
+               sck_nedge_1d <= sck_nedge;
+end
+
+reg  sck_pedge_1d;
+always @(posedge clock or negedge reset)
+begin 
+    if(!reset) sck_pedge_1d <= 1'b0;
+               sck_pedge_1d <= sck_nedge;
+end
+
+reg [7:0] rdata;
+reg       miso; 
+always @(posedge clock or negedge reset)
+begin 
+        if(!reset) miso <= 1'b0;
+        else       miso <= s_idle ? 1'b0:
+                          (sck_nedge_1d & (ra_sckn_cnt==5'd0)) ? rdata[7] :
+                          (sck_nedge_1d & (ra_sckn_cnt==5'd1)) ? rdata[6] :
+                          (sck_nedge_1d & (ra_sckn_cnt==5'd2)) ? rdata[5] :
+                          (sck_nedge_1d & (ra_sckn_cnt==5'd3)) ? rdata[4] :
+                          (sck_nedge_1d & (ra_sckn_cnt==5'd4)) ? rdata[3] :
+                          (sck_nedge_1d & (ra_sckn_cnt==5'd5)) ? rdata[2] :
+                          (sck_nedge_1d & (ra_sckn_cnt==5'd6)) ? rdata[1] :
+                          (sck_nedge_1d & (ra_sckn_cnt==5'd7)) ? rdata[0] : miso;
+                          
+end
+
+reg [1:0] done_cnt;
+always @(posedge clock or negedge reset)
+begin 
+       if(!reset) done_cnt <=2'b0;
+       else       done_cnt <= ~s_done ? 2'b0 : done_cnt+1'b1;
+end
+
+always @(posedge clock or negedge reset)
+begin 
+       if(!reset) begin
+            s_state <= 3'h0;
+       end
+       else begin
+            s_state <=  (s_idle & ss_nedge               ) ? SLAVEID :
+                        (s_slaveid & (sid_sckn_cnt==4'd8)) ? ((slave_id==SLAVE_IDW) ? WADDR : (slave_id==SLAVE_IDR) ? RADDR : IDLE) : 
+                        (s_waddr   & (wa_sckn_cnt== 4'd8)) ? WDATA:
+                        (s_wdata & ss_pedge              ) ? DONE :
+                        (s_raddr & (ra_sckn_cnt==4'd8)   ) ? RDATA:
+                        (s_rdata & ss_pedge              ) ? DONE :
+                        (s_done & (done_cnt==2'd3)       ) ? IDLE : s_state ;
+        end
+end
+
+reg [7:0] user_reg1, user_reg2, user_reg3, user_reg4;
+always @(posedge clock or negedge reset)
+begin 
+        if(!reset) begin
+        user_reg1 <= 8'b0;
+        user_reg2 <= 8'b0;
+        user_reg3 <= 8'b0;
+        user_reg4 <= 8'b0;
+       end
+       else begin
+            user_reg1 <= (s_done & (waddr== `rUSER_REG1)) ? wdata : user_reg1;
+            user_reg2 <= (s_done & (waddr== `rUSER_REG2)) ? wdata : user_reg2;
+            user_reg3 <= (s_done & (waddr== `rUSER_REG3)) ? wdata : user_reg3;
+            user_reg4 <= (s_done & (waddr== `rUSER_REG4)) ? wdata : user_reg4;
+       end
+end
+
+always @(posedge clock or negedge reset)
+begin 
+        if(!reset) rdata <= 16'b0;
+        else rdata <= s_idle ? 16'b0 : 
+             (s_raddr & sck_pedge_1d & (ra_sckn_cnt== 4'd7) & (raddr == `rUSER_REG1)) ? user_reg1 :
+             (s_raddr & sck_pedge_1d & (ra_sckn_cnt== 4'd7) & (raddr == `rUSER_REG2)) ? user_reg2 :
+             (s_raddr & sck_pedge_1d & (ra_sckn_cnt== 4'd7) & (raddr == `rUSER_REG3)) ? user_reg3 :
+             (s_raddr & sck_pedge_1d & (ra_sckn_cnt== 4'd7) & (raddr == `rUSER_REG4)) ? user_reg4 :
+             rdata ;
+                
+end
+       
+endmodule
+
+
+
+
+
+
+
+
+[test bench]
+
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2023/06/22 11:47:13
+// Design Name: 
+// Module Name: tb_spi_task
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module tb_spi_task();
+reg reset, clock;
+initial begin
+        reset = 0;
+        clock = 0;
+#1000   reset = 1;
+end
+
+always #5 clock =~clock;
+
+reg [19:0] cnt;
+always @(posedge clock or negedge reset)
+begin 
+    if(~reset) cnt <= 20'd0;
+    else       cnt <= cnt+1'b1;
+end //counter 생성. 
+
+reg [3:0] btn;
+always @(posedge clock or negedge reset)
+begin
+    if(~reset) btn <= 4'd0;
+    else       btn <= (cnt==20'd100000) ? 4'd1 : (cnt==20'd10100) ? 4'd0 :
+                      (cnt==20'd200000) ? 4'd2 : (cnt==20'd20100) ? 4'd0 :
+                      (cnt==20'd300000) ? 4'd3 : (cnt==20'd30100) ? 4'd0 :
+                      (cnt==20'd400000) ? 4'd4 : (cnt==20'd40100) ? 4'd0 :
+                      (cnt==20'd500000) ? 4'd1 : (cnt==20'd50100) ? 4'd0 :
+                      (cnt==20'd600000) ? 4'd2 : (cnt==20'd60100) ? 4'd0 :
+                      (cnt==20'd700000) ? 4'd4 : (cnt==20'd70100) ? 4'd0 :
+                      (cnt==20'd800000) ? 4'd8 : (cnt==20'd80100) ? 4'd0 :
+                      (cnt==20'd900000) ? 4'd1 : (cnt==20'd90100) ? 4'd0 : btn;
+end
+//btn 순서대로 입력을 생성. 
+wire [7:0] led;
+spi_task spi_task_u1(
+    .reset (reset    ),
+    .clock (clock    ),
+    .btn   (btn      ),
+    .led   (led      )
+);
+//spi_task모듈에 신호를 입력할 것. 
+endmodule
+
+
+
+
+
+
+<xdc file>
+##Clock signal
+set_property -dict { PACKAGE_PIN E3   IOSTANDARD LVCMOS33 } [get_ports { clock } ];
+create_clock -add -name sys_clk_pin -period 10.00 -waveform ( 0 5 ) [get_ports { clock } ];
+
+##Misx. ChipKit Ports
+set_property -dict { PACKAGE_PIN C2 IOSTANDARD LVCMOS33 } [get_ports { reset } ];
+
+##LEDs
+set_property -dict {PACKAGE_PIN T10 IOSTANDARD LVCMOS33 } [get_ports { led[7] }] ;
+set_property -dict {PACKAGE_PIN T9 IOSTANDARD LVCMOS33 } [get_ports { led[6] }] ;
+set_property -dict {PACKAGE_PIN F5 IOSTANDARD LVCMOS33 } [get_ports { led[5] }] ;
+set_property -dict {PACKAGE_PIN M5 IOSTANDARD LVCMOS33 } [get_ports { led[4] }] ;
+
+## RGB LEDs
+set_property -dict {PACKAGE_PIN H6 IOSTANDARD LVCMOS33 } [get_ports { led[3] }] ;
+set_property -dict {PACKAGE_PIN J2 IOSTANDARD LVCMOS33 } [get_ports { led[2] }] ;
+set_property -dict {PACKAGE_PIN J4 IOSTANDARD LVCMOS33 } [get_ports { led[1] }] ;
+set_property -dict {PACKAGE_PIN F6 IOSTANDARD LVCMOS33 } [get_ports { led[0] }] ;
+
+
+##Buttons
+set_property -dict {PACKAGE_PIN D9 IOSTANDARD LVCMOS33 } [get_ports { led[0] }] ;
+set_property -dict {PACKAGE_PIN C9 IOSTANDARD LVCMOS33 } [get_ports { led[1] }] ;
+set_property -dict {PACKAGE_PIN B9 IOSTANDARD LVCMOS33 } [get_ports { led[2] }] ;
+set_property -dict {PACKAGE_PIN B8 IOSTANDARD LVCMOS33 } [get_ports { led[3] }] ;
+
+<Xilinx port>
+timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2023/06/22 14:31:47
+// Design Name: 
+// Module Name: program
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+module led_counter(
+        reset,
+        clock,
+        sw,
+        led
+);
+input reset;
+input clock;
+input [1:0] sw; //2개의 스위치 입력.
+output [3:0] led; //4개의 led 출력
+
+wire locked;
+wire pclk100, pclk50, pclk200;
+clk_gen clk_gen_u1 (
+ .clk_out1 (pclk100  ),
+ .clk_out2 (pclk50   ),
+ .clk_out3 (pclk200  ),
+ .reset  (reset    ),
+ .locked   (locked   ),
+ .clk_in1  (clock    )
+);
+reg [25:0] cnt1;
+always @(posedge pclk50 or negedge reset)
+begin
+        if(~reset) cnt1 <= 26'd0;
+        else       cnt1 <= (cnt1==26'd50000000) ? 26'd0 : cnt1+1'b1;
+end
+
+reg [25:0] led1;
+always @(posedge pclk50 or negedge reset)
+begin
+        if(~reset) led1 <= 26'd0;
+        else       led1 <= (cnt1==26'd50000000) ? 26'd0 : cnt1+1'b1;
+end
+
+reg [25:0] cnt2;
+always @(posedge pclk50 or negedge reset)
+begin
+        if(~reset) led1 <= 26'd0;
+        else       led1 <= (cnt2==26'd50000000) ? 26'd0 : cnt2+1'b1;
+end
+
+reg [25:0] led2;
+always @(posedge pclk50 or negedge reset)
+begin
+        if(~reset) led2 <= 26'd0;
+        else       led2 <= (cnt1==26'd50000000) ? 26'd0 : cnt2+1'b1;
+end
+
+wire led_clk = (sw==2'b00) ? pclk50 : (sw==2'b01) ? pclk100 : pclk200;
+
+reg [25:0] cnt3;
+always @(posedge pclk50 or negedge reset)
+begin
+        if(~reset) cnt3 <= 26'd0;
+        else       cnt3 <= (cnt3==26'd50000000) ? 26'd0 : cnt3+1'b1;
+end
+
+
+reg [25:0] led3;
+always @(posedge pclk50 or negedge reset)
+begin
+        if(~reset) led3 <= 26'd0;
+        else       led3 <= (cnt1==26'd50000000) ? 26'd0 : cnt3+1'b1;
+end
+
+위는 소스코드, 밑은 xdc
+
+
+##Clock signal
+set_property -dict { PACKAGE_PIN E3  IOSTANDARD LVCMOS33 } [get_ports {clock}];
+create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {clock}];
+
+##Misc. ChipKit Forts
+set_property -dict { PACKAGE_PIN C2  IOSTANDARD LVCMOS33 } [get_ports {reset} ];
+
+##Switches
+set_property -dict { PACKAGE_PIN A6 IOSTANDARD LVCOMS33 } [get_ports { sw[0] } ];
+set_property -dict { PACKAGE_PIN C11 IOSTANDARD LVCOMS33 } [get_ports { sw[1] } ];
+
+## LEDs
+set_property -dict { PACKAGE_PIN T10 IOSTANDARD LVCOMS33 } [get_ports { led[3] } ];
+set_property -dict { PACKAGE_PIN T9 IOSTANDARD LVCOMS33 } [get_ports { led[2] } ];
+set_property -dict { PACKAGE_PIN J5 IOSTANDARD LVCOMS33 } [get_ports { led[1] } ];
+set_property -dict { PACKAGE_PIN M5 IOSTANDARD LVCOMS33 } [get_ports { led[0] } ];
+
+clk.gen을 넣은 상태(나중에 교재보고 다시 하기는 힘들 듯. 보드가 없음 일단)

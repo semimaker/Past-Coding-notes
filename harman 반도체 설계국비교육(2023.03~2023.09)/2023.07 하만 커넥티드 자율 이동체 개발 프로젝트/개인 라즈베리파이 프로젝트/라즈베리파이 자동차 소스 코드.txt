@@ -1,0 +1,103 @@
+라즈베리파이 AI 자율주행 자동차를 만드는데, 
+이번에 스마트폰에 버튼을 눌러서 조작하는 일을 맡게 되었어. 
+이 과정을 위해서 C#을 활용한 소스 코드가 필요한데, 
+간단하게 쓸 수 있는 소스 코드를 만들어줄래?
+
+[source]
+using System;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
+public class CarController
+{
+    private const int Port = 8888; // 라즈베리파이에서 사용할 포트 번호
+
+    private TcpClient client;
+    private NetworkStream stream;
+
+    public void Connect(string ipAddress)
+    {
+        client = new TcpClient(ipAddress, Port);
+        stream = client.GetStream();
+    }
+
+    public void Disconnect()
+    {
+        stream.Close();
+        client.Close();
+    }
+
+    public void SendCommand(string command)
+    {
+        byte[] data = Encoding.ASCII.GetBytes(command);
+        stream.Write(data, 0, data.Length);
+    }
+}
+
+public class Program
+{
+    private static CarController carController;
+
+    public static void Main()
+    {
+        carController = new CarController();
+        string ipAddress = "라즈베리파이 IP 주소"; // 실제 라즈베리파이의 IP 주소로 변경
+
+        try
+        {
+            carController.Connect(ipAddress);
+
+            Console.WriteLine("스마트폰 조작을 기다리는 중...");
+            Console.WriteLine("1: 전진, 2: 후진, 3: 좌회전, 4: 우회전, 5: 정지");
+            Console.WriteLine("종료하려면 'q'를 입력하세요.");
+
+            bool quit = false;
+
+            while (!quit)
+            {
+                string input = Console.ReadLine();
+                string command = "";
+
+                switch (input)
+                {
+                    case "1":
+                        command = "forward";
+                        break;
+                    case "2":
+                        command = "backward";
+                        break;
+                    case "3":
+                        command = "left";
+                        break;
+                    case "4":
+                        command = "right";
+                        break;
+                    case "5":
+                        command = "stop";
+                        break;
+                    case "q":
+                        quit = true;
+                        break;
+                    default:
+                        Console.WriteLine("잘못된 입력입니다. 다시 시도하세요.");
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(command))
+                {
+                    carController.SendCommand(command);
+                    Console.WriteLine("명령 전송: " + command);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("오류: " + ex.Message);
+        }
+        finally
+        {
+            carController.Disconnect();
+        }
+    }
+}

@@ -1,0 +1,30 @@
+#pragma once
+#include "value.h"
+#include "Macro.h"
+
+class CCore
+{
+public:
+	CCore();
+	~CCore();
+
+private:
+	static CCore* m_plnst;
+
+public:
+	static CCore* Getlnst()
+	{
+		if (!m_plnst)
+			m_plnst = new CCore;
+		return m_plnst;
+	}
+
+	static void DestoryInst()
+	{
+		SAFE_DELETE(m_plnst);
+	}
+
+public:
+	bool Init();
+	void Run();
+};

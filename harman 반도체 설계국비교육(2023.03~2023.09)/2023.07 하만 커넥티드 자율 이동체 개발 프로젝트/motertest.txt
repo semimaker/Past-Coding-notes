@@ -1,0 +1,107 @@
+#include <wiringPi.h>
+#include <softPwm.h>
+
+// Motor pin 설정
+#define MOTOR_MT_N1_PIN 9	//앞왼
+#define MOTOR_MT_P1_PIN 4
+#define MOTOR_MT_N2_PIN 15	//앞오
+#define MOTOR_MT_P2_PIN 10
+#define MOTOR_MT_N3_PIN 13	//뒤왼
+#define MOTOR_MT_P3_PIN 18
+#define MOTOR_MT_N4_PIN 25	//뒤오
+#define MOTOR_MT_P4_PIN 20
+
+// Motor 회전 방향 정의
+#define LEFT_ROTATE 1
+#define RIGHT_ROTATE 2
+
+// Motor 정지 함수
+// softPwmWrite : 생성된 PWM핀을 통해 1의 지속시간을 변경해 duty cycle 변경
+void MotorStop(){
+softPwmWrite(MOTOR_MT_N1_PIN, 0);	
+softPwmWrite(MOTOR_MT_P1_PIN, 0);
+softPwmWrite(MOTOR_MT_N2_PIN, 0);	
+softPwmWrite(MOTOR_MT_P2_PIN, 0);
+softPwmWrite(MOTOR_MT_N3_PIN, 0);	
+softPwmWrite(MOTOR_MT_P3_PIN, 0);
+softPwmWrite(MOTOR_MT_N4_PIN, 0);	
+softPwmWrite(MOTOR_MT_P4_PIN, 0);
+}
+
+// Motor 속도 및 방향 조절 함수
+//
+
+void MotorControl(int rotate, int speed){
+	// Left rotation
+    if(rotate==LEFT_ROTATE){
+    	digitalWrite(MOTOR_MT_N1_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P1_PIN, speed);
+        // 오른쪽 
+        digitalWrite(MOTOR_MT_P2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N2_PIN, speed);
+        //왼쪽
+        
+        digitalWrite(MOTOR_MT_N3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P3_PIN, speed);
+        //오른쪽
+        digitalWrite(MOTOR_MT_P4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N4_PIN, speed);
+        //왼쪽
+    }
+    else{
+        digitalWrite(MOTOR_MT_P1_PIN, LOW);
+		softPwmWrite(MOTOR_MT_N1_PIN, speed);
+		//왼쪽
+        digitalWrite(MOTOR_MT_N2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P2_PIN, speed);
+        //오른쪽
+        
+        digitalWrite(MOTOR_MT_P3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N3_PIN, speed);
+        //왼쪽
+        digitalWrite(MOTOR_MT_N4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P4_PIN, speed);
+        //오른쪽
+    }
+}
+
+int main(void){
+  if (wiringPiSetupGpio() == -1)
+  		return 1;
+  
+  // Motor 핀 출력으로 설정
+  pinMode(MOTOR_MT_N1_PIN, OUTPUT);
+  pinMode(MOTOR_MT_P1_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N2_PIN, OUTPUT);
+  pinMode(MOTOR_MT_P2_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N3_PIN, OUTPUT);
+  pinMode(MOTOR_MT_P3_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N4_PIN, OUTPUT);
+  pinMode(MOTOR_MT_P4_PIN, OUTPUT);
+  
+  // Motor 핀 PWM 제어 핀으로 설정, 주기: 128ms
+  //softPwmCreate : 소프트웨어로 제어하는 PWM핀 생성 함수
+  softPwmCreate(MOTOR_MT_N1_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_P1_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N2_PIN, 0, 128);    
+  softPwmCreate(MOTOR_MT_P2_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N3_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_P3_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N4_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_P4_PIN, 0, 128);
+  
+  while(1)
+  {
+  	MotorControl(LEFT_ROTATE, 60); // 왼쪽으로 Motor cycle 50% 동작 
+    delay(2000);
+    MotorStop(); // Motor 정지
+    delay(2000);
+    
+    MotorControl(RIGHT_ROTATE, 60); // 오른쪽으로 Motor cycle 50% 동작 
+    delay(2000);
+    MotorStop(); // Motor 정지
+    delay(2000);
+  }
+  
+  return 0;
+}

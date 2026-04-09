@@ -1,0 +1,23 @@
+#include <iostream>
+
+using namespace std;
+
+int main() {
+
+	/*레퍼런스: 다른 대상을 참조하게 만드는 기능.
+	참조를 하게 되면 그 대상에 접근하여 값을 변경.
+	단, 레퍼런스는 처음 변수 생성시 참조 대상을 지정해야한다.
+	변수타입 &레퍼런스명 = 참조할 변수명;
+	*/
+	int iNumber = 100;
+	int iNumber1 = 9999;
+	int &iRefNum = iNumber;//여기까지는 100으로 대입. 그러나 밑에서 새로 정의하여 1234.
+	
+	iRefNum = 1234;//레퍼런스 변수는 iNumber을 참조한다.
+	iRefNum = iNumber1;
+
+	cout << iNumber << endl;
+	cout << sizeof(iRefNum) << endl;
+
+	return 0;
+}

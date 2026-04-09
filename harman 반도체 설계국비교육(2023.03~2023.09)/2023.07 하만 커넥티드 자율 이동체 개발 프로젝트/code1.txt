@@ -1,0 +1,46 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Net.Sockets; //참조 가능한 소켓이 유지되었음을 표시한다. 객체 안의 여러가지 소켓을 사용할 수 있다. 
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Comm
+{
+    public partial class Form1 : Form
+    {
+        Socket tcpSocket = null; //참조 가능한 무언가가 정의되었다는 의미. tcp는 여러 개의 함수에 걸쳐 사용될 것처럼 보이지만 사실은 단일함수가 아닌 함수의 내부에서 선언.
+        TcpClient tcpClient = null; //통신은 양방향이며, 서로 주고받는 것이기 때문에 불특정한 면이 있으며 송신자와 어딘가에 있는 수신자가 있다는 것이다. (1:1), (1:다)
+        TcpListener listen = null; //ip와 port. (Local ip는 default로서 생략한다.) 
+       //Tcp socket을 모두 수동적으로 처리하기 위함이며, Tcpclient와 Tcplistener의 경우 모두 대표적으로 쓰인다. 
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e) //btnStart_Click, 여러번 눌릴 것을 예상하여 정리를 한다.
+        {   
+            if(listen == null) //listen이 null이면 아래를 처리. null이 아닌 경우를 거른다는 점에서 좋음.
+
+                listen = new TcpListener(9000); //9000번대의 포트항상 새로운 객체를 초기화하기 위해서는 new 사용.()안에는 argument로 정의시킴. 
+                listen.Start();
+                tbComm.Text += "Listener started....\n"; //서버동작, 1차 웨이팅. Thread 이라는 기능이 들어가있음. 
+                
+                //port시키면 안되는 ip : 80,8080,430, 낮은 자리의 숫자(유명한 회사들이 예약한 경우가 있다), 누군가 특정 포트를 정의했다면 지켜줄 것. 
+
+                while(true) //C# 조건문에 null을 넣어주어야 한다. 그래서 (1)이 아닌 true을 쓴다. 
+                    {
+                        if(listen.Pending() == true) //무언가 접속요청이 있는지를 판단. 요철이 있다고 한다면,  AcceptTcpClient();을 한다. 
+                        {
+                            tcpClient = listen.AcceptTcpClient();// 조건이 일치하면listen의 client가 tcp client에 던져짐.
+                                                                 // 외부에서의 접속 요청을 수락할 때,상대 정보가 클라이언트에 들어가있다. 
+                            string s = tcpClient.Client.RemoteEndPoint.ToString(); //remote end point라는 정보를 알고 싶다. 4바이트 정보를 문자열로 바꾼다. 
+                            tbComm.Text += $"Client from [{s}].\n"; //$ {변수}, 외부 client의 ip를 [](대괄호)로 감싸서 사용.
+                    break;
+                } //무한루프에서 여기를 잡고 있고, 지속적으로 체크하기 때문에 뻑뻑할 일이 없다. 
+                    }
+        } 

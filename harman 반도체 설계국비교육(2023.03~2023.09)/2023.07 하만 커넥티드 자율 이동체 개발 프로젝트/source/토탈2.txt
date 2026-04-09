@@ -1,0 +1,274 @@
+#include <wiringPi.h>
+#include <softPwm.h>
+#include <stdio.h>
+
+
+// buzzer pin 설정
+#define BUZZER_PIN 5
+
+//led pin 설정
+#define ledRed 22
+#define ledGrn 23
+#define ledBlue 24
+
+// Motor pin 설정
+#define MOTOR_MT_N1_PIN 9	//앞왼
+#define MOTOR_MT_P1_PIN 4
+#define MOTOR_MT_N2_PIN 15	//앞오
+#define MOTOR_MT_P2_PIN 10
+#define MOTOR_MT_N3_PIN 13	//뒤왼
+#define MOTOR_MT_P3_PIN 18
+#define MOTOR_MT_N4_PIN 25	//뒤오
+#define MOTOR_MT_P4_PIN 20  	
+
+
+
+// Motor pin 설정
+#define MOTOR_MT_N1_PIN 9	//앞왼
+#define MOTOR_MT_P1_PIN 4
+#define MOTOR_MT_N2_PIN 15	//앞오
+#define MOTOR_MT_P2_PIN 10
+#define MOTOR_MT_N3_PIN 13	//뒤왼
+#define MOTOR_MT_P3_PIN 18
+#define MOTOR_MT_N4_PIN 25	//뒤오
+#define MOTOR_MT_P4_PIN 20
+#define pinTrig 26
+#define pinEcho 27
+
+// Motor 회전 방향 정의
+#define LEFT_ROTATE 1
+#define RIGHT_ROTATE 2
+#define BACK_ROTATE 3
+#define FORWARD_ROTATE 4
+#define STOP_ROTATE 5
+// ----------------------------------------------------------
+
+//playTone : 주어진 주파수와 지속 시간에 해당하는 소리를 발생시키는 함수
+void playTone(int frequency, int duration) {   //주파수와 지속시간 입력받기
+    int period = 100000 / frequency;
+    int halfPeriod = period / 2;
+    int cycles = frequency * duration / 1000; 
+//cycle : 음의 지속 시간(duration)을 기반으로 소리가 발생해야 할 주기의 횟수를 계산
+
+    for (int i = 0; i < cycles; i++) {
+        digitalWrite(BUZZER_PIN, HIGH);
+        delayMicroseconds(halfPeriod);
+        digitalWrite(BUZZER_PIN, LOW);
+        delayMicroseconds(halfPeriod);
+    }
+}
+
+
+// ----------------------------------------------------------
+// Motor 정지 함수
+// softPwmWrite : 생성된 PWM핀을 통해 1의 지속시간을 변경해 duty cycle 변경
+void MotorStop(){
+softPwmWrite(MOTOR_MT_N1_PIN, 0);	
+softPwmWrite(MOTOR_MT_P1_PIN, 0);
+softPwmWrite(MOTOR_MT_N2_PIN, 0);	
+softPwmWrite(MOTOR_MT_P2_PIN, 0);
+softPwmWrite(MOTOR_MT_N3_PIN, 0);	
+softPwmWrite(MOTOR_MT_P3_PIN, 0);
+softPwmWrite(MOTOR_MT_N4_PIN, 0);	
+softPwmWrite(MOTOR_MT_P4_PIN, 0);
+}
+
+
+// Motor 속도 및 방향 조절 함수
+void MotorControl(int rotate, int speed){
+	// Left rotation
+    if(rotate==LEFT_ROTATE){
+    	digitalWrite(MOTOR_MT_N1_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P1_PIN, speed);
+        // 오른쪽 
+        digitalWrite(MOTOR_MT_P2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N2_PIN, speed);
+        //왼쪽
+        
+        digitalWrite(MOTOR_MT_N3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P3_PIN, speed);
+        //오른쪽
+        digitalWrite(MOTOR_MT_P4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N4_PIN, speed);
+        //왼쪽
+    }
+    else if(rotate == RIGHT_ROTATE){
+        digitalWrite(MOTOR_MT_P1_PIN, LOW);
+		softPwmWrite(MOTOR_MT_N1_PIN, speed);
+		//왼쪽
+        digitalWrite(MOTOR_MT_N2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P2_PIN, speed);
+        //오른쪽
+        
+        digitalWrite(MOTOR_MT_P3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N3_PIN, speed);
+        //왼쪽
+        digitalWrite(MOTOR_MT_N4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P4_PIN, speed);
+        //오른쪽
+    }
+  else if(rotate==FORWARD_ROTATE){
+     digitalWrite(MOTOR_MT_N1_PIN, LOW);
+      softPwmWrite(MOTOR_MT_P1_PIN, speed);
+  
+        digitalWrite(MOTOR_MT_N2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P2_PIN, speed);
+      
+        
+        digitalWrite(MOTOR_MT_N3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P3_PIN, speed);
+       
+        digitalWrite(MOTOR_MT_N4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_P4_PIN, speed);	
+}
+ else if(rotate==STOP_ROTATE){
+digitalWrite(MOTOR_MT_N1_PIN, LOW);	
+digitalWrite(MOTOR_MT_P1_PIN, LOW);
+digitalWrite(MOTOR_MT_N2_PIN, LOW);	
+digitalWrite(MOTOR_MT_P2_PIN, LOW);
+digitalWrite(MOTOR_MT_N3_PIN, LOW);	
+digitalWrite(MOTOR_MT_P3_PIN, LOW);
+digitalWrite(MOTOR_MT_N4_PIN, LOW);	
+digitalWrite(MOTOR_MT_P4_PIN, LOW);	
+}
+ else if(rotate==BACK_ROTATE){
+      digitalWrite(MOTOR_MT_P1_PIN, LOW);
+      softPwmWrite(MOTOR_MT_N1_PIN, speed);
+  
+        digitalWrite(MOTOR_MT_P2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N2_PIN, speed);
+      
+        
+        digitalWrite(MOTOR_MT_P3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N3_PIN, speed);
+       
+        digitalWrite(MOTOR_MT_P4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N4_PIN, speed);
+       
+}
+}
+// ----------------------------------------------------------
+
+int main(void){
+  if (wiringPiSetupGpio() == -1)
+  		return 1;
+  int duty = 110;
+  
+  //초음파센서
+	
+	long t1, t2;
+	double dist;
+	
+
+  // Motor 핀 출력으로 설정
+  pinMode(MOTOR_MT_N1_PIN, OUTPUT);
+  pinMode(MOTOR_MT_P1_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N2_PIN, OUTPUT);
+  pinMode(MOTOR_MT_P2_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N3_PIN, OUTPUT);
+  pinMode(MOTOR_MT_P3_PIN, OUTPUT);
+  pinMode(MOTOR_MT_N4_PIN, OUTPUT);
+  pinMode(MOTOR_MT_P4_PIN, OUTPUT);
+  
+  pinMode(pinTrig, OUTPUT);	//trigger신호를 출력신호로 설정
+  pinMode(pinEcho, INPUT);	//echo신호를    입력신호로 설정
+  
+  pinMode(ledRed, OUTPUT);
+  pinMode(ledGrn, OUTPUT);
+  pinMode(ledBlue, OUTPUT);
+  
+  pinMode(BUZZER_PIN, OUTPUT);
+  
+  
+  // Motor 핀 PWM 제어 핀으로 설정, 주기: 128ms
+  //softPwmCreate : 소프트웨어로 제어하는 PWM핀 생성 함수
+  softPwmCreate(MOTOR_MT_N1_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_P1_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N2_PIN, 0, 128);    
+  softPwmCreate(MOTOR_MT_P2_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N3_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_P3_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_N4_PIN, 0, 128);
+  softPwmCreate(MOTOR_MT_P4_PIN, 0, 128);
+  
+  while(1){
+  	
+  	//trigger 신호 shaping
+	digitalWrite(pinTrig, 0);   			//low신호로 trigger 시간을 기다림. 
+	delayMicroseconds(2);					//2us동안 지속
+	digitalWrite(pinTrig, 1);				//trigger 신호 날리기 . high로 보내기 (10us의 펄스)
+	delayMicroseconds(10);
+	digitalWrite(pinTrig, 0);   
+	delayMicroseconds(200);					//200us동안 low로 유지
+	
+	while(digitalRead(pinEcho) == 0) ; 		//echo가 1일때까지 반복
+	//if(digitalRead(pinEcho) != 0) break;  //위 while문과 같은 의미. 비추천
+	
+	//echo 신호 monitoring 
+	t1 = micros();							//micros: micro 단위의 현재시간을 저장
+	while(digitalRead(pinEcho) == 1) ;	 	//echo가 0일때까지 반복
+	
+	t2 = micros();
+	dist = (t2 - t1) * 0.00034 / 2;			//음파속도와 t1,t2의 차이를 이용해 거리 구하기
+	
+	printf("Distance : %.1f\n", 100*dist);		//거리출력
+	
+	
+	//led	
+	if( 100*dist >= 100 )
+	{
+	    duty = 110;
+	MotorControl(FORWARD_, duty); 
+	    digitalWrite(ledRed, 0);
+	    digitalWrite(ledGrn, 1);
+	    digitalWrite(ledBlue, 0);
+	}
+	
+	 if( (100*dist >= 50) && (100*dist <= 100) )
+	{
+	MotorControl(FORWARD_ROTATE , duty); 
+	    duty = 60;
+	    digitalWrite(ledRed, 0);
+	    digitalWrite(ledGrn, 1);
+	    digitalWrite(ledBlue, 0);
+	}
+
+	if( 100*dist < 50 )
+	{	    
+	   duty = 20;
+	    digitalWrite(ledRed, 1);
+	    digitalWrite(ledGrn, 0);
+	    digitalWrite(ledBlue, 0);
+		if(dist_L<dist_R)
+		{
+		MotorControl(RIGHT_ROTATE_, duty); 
+		}
+		else if(dist_R<dist_L)
+		{
+		MotorControl(LEFT_ROTATE_, duty); 
+		}
+		else if(100*dist<20 && 100*dist<20)
+		{
+		MotorControl(BACK_ROTATE_, duty); 
+		}
+		
+		
+	}
+	 
+
+	//delay(10);
+  	
+    MotorControl(LEFT_ROTATE, duty); // 왼쪽으로 Motor cycle 50% 동작 
+    //delay(2000);
+    //MotorStop(); // Motor 정지
+    //delay(10);
+    
+    //MotorControl(RIGHT_ROTATE, duty); // 오른쪽으로 Motor cycle 50% 동작 
+    //delay(2000);
+    //MotorStop(); // Motor 정지
+    //delay(10);
+    
+  }
+  
+  return 0;
+}

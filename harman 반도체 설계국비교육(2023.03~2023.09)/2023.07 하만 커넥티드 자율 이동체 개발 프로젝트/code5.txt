@@ -1,0 +1,87 @@
+namespace Comm
+{
+    partial class Form1
+    {
+        /// <summary>
+        /// 필수 디자이너 변수입니다.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// 사용 중인 모든 리소스를 정리합니다.
+        /// </summary>
+        /// <param name="disposing">관리되는 리소스를 삭제해야 하면 true이고, 그렇지 않으면 false입니다.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form 디자이너에서 생성한 코드
+
+        /// <summary>
+        /// 디자이너 지원에 필요한 메서드입니다. 
+        /// 이 메서드의 내용을 코드 편집기로 수정하지 마세요.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.btnstart = new System.Windows.Forms.Button();
+            this.bttnstop = new System.Windows.Forms.Button();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.SuspendLayout();
+            // 
+            // btnstart
+            // 
+            this.btnstart.Location = new System.Drawing.Point(0, 483);
+            this.btnstart.Name = "btnstart";
+            this.btnstart.Size = new System.Drawing.Size(119, 81);
+            this.btnstart.TabIndex = 0;
+            this.btnstart.Text = "실행";
+            this.btnstart.UseVisualStyleBackColor = true;
+            // 
+            // bttnstop
+            // 
+            this.bttnstop.Location = new System.Drawing.Point(285, 483);
+            this.bttnstop.Name = "bttnstop";
+            this.bttnstop.Size = new System.Drawing.Size(128, 87);
+            this.bttnstop.TabIndex = 1;
+            this.bttnstop.Text = "취소";
+            this.bttnstop.UseVisualStyleBackColor = true;
+            // 
+            // textBox2
+            // 
+            this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox2.Location = new System.Drawing.Point(5, 0);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox2.Size = new System.Drawing.Size(408, 21);
+            this.textBox2.TabIndex = 2;
+            // 
+            // Form1
+            // 
+            this.ClientSize = new System.Drawing.Size(411, 565);
+            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.bttnstop);
+            this.Controls.Add(this.btnstart);
+            this.Name = "Form1";
+            this.DoubleClick += new System.EventHandler(this.Form1_DoubleClick);
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button tbComm;
+        private System.Windows.Forms.Button btnStop;
+        private System.Windows.Forms.Button btnstart;
+        private System.Windows.Forms.Button bttnstop;
+        private System.Windows.Forms.TextBox textBox2;
+    }
+}

@@ -1,0 +1,112 @@
+using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
+public class RCRoverController
+{
+    private const int Port = 8888; // Raspberry Pi에서 사용할 포트 번호
+
+    private TcpListener listener;
+    private TcpClient client;
+    private NetworkStream stream;
+    private bool connected;
+
+    public void Start()
+    {
+        IPAddress ipAddress = IPAddress.Any;
+        listener = new TcpListener(ipAddress, Port);
+        listener.Start();
+
+        Console.WriteLine("RC 카 서버 시작...");
+
+        connected = false;
+
+        while (true)
+        {
+            if (!connected)
+            {
+                client = listener.AcceptTcpClient();
+                stream = client.GetStream();
+                connected = true;
+                Console.WriteLine("클라이언트가 연결되었습니다.");
+            }
+
+            byte[] data = new byte[1024];
+            int bytesRead = stream.Read(data, 0, data.Length);
+            string command = Encoding.ASCII.GetString(data, 0, bytesRead);
+            Console.WriteLine("받은 명령: " + command);
+
+            // 받은 명령을 해석하여 RC 카를 제어하는 로직을 추가
+
+            // "forward" 명령인 경우, 앞으로 전진
+            if (command == "forward")
+            {
+                Console.WriteLine("RC 카를 앞으로 전진시킵니다.");
+                // RC 카를 앞으로 전진시키는 로직 추가
+            }
+            // "backward" 명령인 경우, 뒤로 후진
+            else if (command == "backward")
+            {
+                Console.WriteLine("RC 카를 뒤로 후진시킵니다.");
+                // RC 카를 뒤로 후진시키는 로직 추가
+            }
+            // "left" 명령인 경우, 왼쪽으로 회전
+            else if (command == "left")
+            {
+                Console.WriteLine("RC 카를 왼쪽으로 회전시킵니다.");
+                // RC 카를 왼쪽으로 회전시키는 로직 추가
+            }
+            // "right" 명령인 경우, 오른쪽으로 회전
+            else if (command == "right")
+            {
+                Console.WriteLine("RC 카를 오른쪽으로 회전시킵니다.");
+                // RC 카를 오른쪽으로 회전시키는 로직 추가
+            }
+            // "stop" 명령인 경우, 정지
+            else if (command == "stop")
+            {
+                Console.WriteLine("RC 카를 정지시킵니다.");
+                // RC 카를 정지시키는 로직 추가
+            }
+        }
+    }
+
+    public void Stop()
+    {
+        if (connected)
+        {
+            stream.Close();
+            client.Close();
+            connected = false;
+            Console.WriteLine("클라이언트 연결이 종료되었습니다.");
+        }
+
+        if (listener != null)
+        {
+            listener.Stop();
+            Console.WriteLine("RC 카 서버를 종료합니다.");
+        }
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        RCRoverController roverController = new RCRoverController();
+
+        try
+        {
+            roverController.Start();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("오류: " + ex.Message);
+        }
+        finally
+        {
+            roverController.Stop();
+        }
+    }

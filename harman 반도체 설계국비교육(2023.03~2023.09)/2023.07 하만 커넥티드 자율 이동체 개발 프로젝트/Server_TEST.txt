@@ -1,0 +1,104 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#define RASPBERRY_PI_PORT 2024
+
+void error_handling(char *message);
+
+int main()
+{
+    int server_socket;
+    int client_socket;
+    struct sockaddr_in server_addr;
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_size;
+
+    //char message[1024];
+    int str_len;
+
+    server_socket = socket(PF_INET, SOCK_STREAM, 0);
+    if (server_socket == -1)
+        error_handling("socket() error");
+
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port = htons(RASPBERRY_PI_PORT);
+
+    if (bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
+        error_handling("bind() error");
+
+    if (listen(server_socket, 5) == -1)
+        error_handling("listen() error");
+
+    printf("라즈베리파이 서버가 %d 포트에서 대기 중입니다...\n", RASPBERRY_PI_PORT);
+
+	while(1)
+	{	
+	    client_addr_size = sizeof(client_addr);
+	    client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &client_addr_size);
+	    if (client_socket == -1)
+	    {
+		    error_handling("accept() error");
+		    continue;
+	    }
+	    char buffer[1024];
+		
+	    while ((str_len = read(client_socket, buffer, sizeof(buffer) - 1)) > 0)
+	    {
+	    buffer[str_len] = '\0';            
+            printf("수신된 메시지: %s\n", buffer);
+
+            // 클라이언트에게 응답 메시지 전송
+            write(client_socket, buffer, str_len);
+	    
+		if(strcmp(buffer,"ON") == 0)
+		{
+		       const char* command = "/home/pi/work/Team5/Active"; // 실행하려는 파일의 경로로 바꿔주세요.
+
+		    // 명령을 실행합니다.
+		    int result = system(command);
+
+		    // system() 함수의 반환 값은 실행한 명령의 종료 코드입니다.
+		    // 일반적으로 0이면 성공, 그 외의 값은 오류를 의미합니다.
+		    if (result == 0) 
+		    {
+			printf("다른 파일이 성공적으로 실행되었습니다.\n");
+		    } 
+		    else 
+		    {
+			printf("파일 실행 중 오류가 발생했습니다.\n");
+		    }
+
+		}
+		
+
+	    
+	    }
+	    if (str_len == 0)
+            printf("클라이언트와의 연결이 끊어졌습니다.\n");
+	    else if (str_len == -1)
+            error_handling("read() error");
+	
+	/*    str_len = read(client_socket, buffer, sizeof(buffer) - 1);
+	    if (str_len == -1)
+		    error_handling("read() error");
+
+	    buffer[str_len] = '\0';
+	    printf("수신된 메시지: %s\n", buffer);*/
+
+	    close(client_socket);
+	}
+    close(server_socket);
+    return 0;
+}
+
+void error_handling(char *message)
+{
+    fputs(message, stderr);
+    fputc('\n', stderr);
+    exit(1);
+}

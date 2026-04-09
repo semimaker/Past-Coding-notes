@@ -1,0 +1,170 @@
+#include <iostream>
+
+using namespace std;
+
+//가상함수 = 함수 오버라이딩, 함수를 재정의한다. 멤버함수 앞에 virtual 키워드를 붙이면 해당 함수는 가상함수이다.
+//만약 CParent 클래스에 virtual void Output() 함수가 있다면 자식클래스에서는 이를 재정의한다. 재정의는 함수이름과 인자가 같아야 한다.
+//가상함수를 가지고 있는 클래스는 내부적으로 가상함수 테이블이라는 것을 생성한다.
+//만약 Cparent의 output이 가상함수, CChild 클래스에 output을 재정의한다면 그런 뒤 cchild 객체
+//를 생성하면 가상함수 테이블에는 cchild class의 output주소가 오른다. 
+//만약 cparent 객체를 생성한다면 cparent의 output주소가 올라간다. 그래서 output함수(가상함수)
+//를 호출하게 된다면 먼저 가상함수 테이블을 참조해서 메모리 주소를 확인한다. 가상함수 테이블에 cchild의 output 주소가 들어가
+//있다면 그 주소의 함수를 호출해주는 개념이다. 
+
+//소멸자도 가상함수로 만들 수 있다. 부모의 소멸자를 가상함수로 변환시켜서 말이다.
+class CParent
+{
+public:
+	CParent()
+	{
+		cout << "CParent 생성자 " << endl;
+	}
+
+	virtual ~CParent() //가상함수 
+	{
+		cout << "CParent 소멸자 " << endl;
+	}
+public:
+	int m_iA;
+protected:
+	int m_iB;
+private:
+	int m_iC;
+public:
+	void Output()
+	{
+		cout << "A : " << m_iA << endl;
+		cout << "B : " << m_iB << endl;
+		cout << "C : " << m_iC << endl;
+	}
+	 void ChildOutput()
+	{
+		cout << "Child Output Function" << endl;
+	}
+	virtual void Output()
+	{
+		cout << "Child Output Function" << endl;
+	}
+	virtual void OutputPure()
+	{
+
+	}
+	//순수가상함수 : 가상함수 뒤에 = 0을 붙여주면 해당 가상함수는 순수가상함수가 된다.
+	//순수가상함수는 구현부분이 존재하지 않고, 이를 가진 클래스를 추상클래스라고 한다.
+	//추상클래스는 인스턴스(객체) 생성이 불가능하다.
+	//순수가상함수는 자식에서 반드시 재정의해야한다. 왜냐하면 순수가상함수는 정의부분이 
+	//없기 때문에 반드시 자식에서 재정의해서 사용할 목적으로 만들어주는 함수이기 때문이다.
+};
+class CChild : public CParent
+{
+public:
+	CChild()
+	{
+		cout << "Child 생성자 " << endl;
+	}
+	~CChild()
+	{
+		cout << "Child 소멸자 " << endl;
+	}
+
+protected:
+	int m_iD;
+public:
+	virtual void OutputPure()
+	{
+	}
+};
+
+class CChild1 : private CParent
+{
+public:
+	CChild1()
+	{	
+		m_iA = 100;
+		m_iB = 200;
+		//m_iC = 300; private은 내부에서 접근이 안된다.
+		cout << "Child1 생성자 " << endl;
+	}
+	~CChild1()
+	{
+		cout << "Child1 소멸자 " << endl;
+	}
+};
+
+class CChildChild : public CChild
+{
+public:
+	CChildChild()
+	{
+		m_iD = 500;
+		cout << "CCildChild 생성자 " << endl; //호출 순서 : 부모 -> 자식
+	}
+	~CChildChild()
+	{
+		cout << "CCildChild 소멸자 " << endl; //호출 순서 : 자식 -> 부모.
+	}
+private:
+	int m_iE;
+};
+
+int main()
+{
+
+	//CParent parent;
+	//CChild child;
+	//CChild1 child1;
+	//CChildChild childchild;
+
+	//parent.m_iA = 100;
+	//child.m_iA = 200;
+	//child1.m_iA = 300; //접근할 수 없는 이유 : 이 클래스는 private 상속을 하고 있으므로
+	//CParent에 public으로 설정된 멤버들도 외부에서는 접근이 불가능하다.
+
+	
+	//CParent* pParent = new CChild1; //new CChild을 하게 되면 객체 하나를 생성한 후, 그 메모리 주소
+	//CParent* pParent2 = new CChildChild;//를 반환한다.
+	//CParent* pParentArr[2] = {};
+
+	//pParentArr[0] = new CChild;
+	//pParentArr[1] = new CChildChild;
+	//delete pChild; //Cparent *타입 변수에 이 반환된 주소를 대입하고 있다.
+	//이러한 결과들은 상속관계이기 때문인데, 자식-메모리 주소를 부모포인터타입으로 형변환된
+	//것이기 때문이다.이런 형변환을 '업캐스팅'이라고 한다.
+	//자식 -> 부모 타입 형변환 : 업캐스팅
+	//부모 -> 자식 타입 형변환 : 다운캐스팅
+	CParent* pParent = new CChild;
+	CChild1 child1;
+
+	//CParent parent; 추상 클래스라서 생성이 불가능하다.
+	//CChild* pChild = (CChild*)pParent;
+	//CChild1* pChild1 = (CChild1*)pParent;//delete을 하면, CChild 소멸자 -> CParent 소멸자가 호출되어야한다.
+	//그러나 지금은 CParent 소멸자만 호출되며, 이는 근본적으로 pParent 소멸자는 CParent의 포인터 타입이다. 
+	//이로 인하여, CChild 소멸자가 호출될 수 없다.
+	//CChild 클래스에 있는 ChildOutput 함수에 접근할 수 없다. 왜냐하면 pParent는 CParent 포인터 타입이기에
+	//자식 멤버에 접근이 안된다. 접근하고 싶다면 형변환해야 한다.
+	
+	CChild* pChild = (CChild*)pParent;
+	CChild1* pChild1 = (CChild1*)pParent;
+	((CChild*)pParent)->ChildOutput();
+	pParent->CParent::Output();
+	pParent->Output();
+	delete pParent;
+	//delete pParent2;
+
+	for (int i = 0; i < 2; ++i)
+	{
+		//delete pParentArr[i];
+	}
+	//아래 클래스는 모두 CParent클래스를 상속받는다. 그러므로 pParent를 두 타입 모두 다운캐스팅 가능
+	//그런데 pParent는 CChild로 할당한 객체/ 이 객체를 CChild1으로 다운캐스팅하면 사용시 문제가 된다.
+	//왜냐하면 애초에 생성한 객체가 아닌 다른 타입으로 변화했다.
+	return 0;
+}
+//상속 : 클래스는 서로간 부모, 자식 관계를 형성. 자식 - 부모 클래스 멤버 사용 가능.
+//부모클래스에서 public, protected 로 되어 있는 멤버 사용 가능
+//private 멤버는 자식에서도 사용이 안된다.
+
+//형태 : public, private. 
+
+
+//다형성 : 상속관계에 있는 클래스간의 

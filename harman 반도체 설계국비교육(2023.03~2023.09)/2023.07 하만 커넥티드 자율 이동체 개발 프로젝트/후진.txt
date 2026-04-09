@@ -1,0 +1,15 @@
+if(rotate==BACK_ROTATE){
+      digitalWrite(MOTOR_MT_P1_PIN, LOW);
+      softPwmWrite(MOTOR_MT_N1_PIN, speed);
+  
+        digitalWrite(MOTOR_MT_P2_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N2_PIN, speed);
+      
+        
+        digitalWrite(MOTOR_MT_P3_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N3_PIN, speed);
+       
+        digitalWrite(MOTOR_MT_P4_PIN, LOW);
+        softPwmWrite(MOTOR_MT_N4_PIN, speed);
+       
+}

@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <wiringPi.h>
+
+// TCS3200 센서 핀 매핑
+#define S0  2
+#define S1  3
+#define S2  4
+#define S3  5
+#define OUT 9
+#define LED 25
+
+// TCS3200 센서 측정 주기 (microseconds)
+#define MEASURE_DELAY 1000
+
+
+// 함수 선언
+void setupTCS3200();
+void setColorFrequency(int s2Value, int s3Value);
+unsigned int pulseIn(int pin, int level);
+
+int main() {
+    if (wiringPiSetupGpio() == -1) {
+        printf("WiringPi 초기화 실패!\n");
+        return 1;
+    }
+
+    setupTCS3200();
+
+    while (1) {
+        int colorValue = pulseIn(OUT, LOW); // 컬러 값을 읽음
+        printf("측정된 색상 값: %d\n", colorValue);
+
+        delay(MEASURE_DELAY);
+    }
+
+    return 0;
+}
+
+void setupTCS3200() {
+    pinMode(S0, OUTPUT);
+    pinMode(S1, OUTPUT);
+    pinMode(S2, OUTPUT);
+    pinMode(S3, OUTPUT);
+    pinMode(OUT, INPUT);
+    pinMode(LED, OUTPUT);
+    
+    // 주파수 분주비 설정 (1:1)
+    digitalWrite(S0, LOW);
+    digitalWrite(S1, HIGH);
+    digitalWrite(LED, HIGH);
+}
+
+void setColorFrequency(int s2Value, int s3Value) {
+    digitalWrite(S2, s2Value);
+    digitalWrite(S3, s3Value);
+}
+
+unsigned int pulseIn(int pin, int level) {
+    unsigned int pulse_width = 0;
+    while (digitalRead(pin) != level) {
+        // 대기
+    }
+    while (digitalRead(pin) == level) {
+        pulse_width++;
+    }
+    return pulse_width;
+}

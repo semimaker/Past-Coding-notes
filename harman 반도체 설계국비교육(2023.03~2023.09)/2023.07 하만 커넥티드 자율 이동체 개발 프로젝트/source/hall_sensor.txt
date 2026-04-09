@@ -1,0 +1,43 @@
+홀센서
+
+홀 센서 : 자기장을 감지하여 출력을 생성하는 센서 
+홀 센서는 일반적으로 파이조(Piezoelectric) 물질을 사용하여 자기장의 변화를 전기 신호로 감지 
+종류 : 아날로그 홀 센서, 디지털 홀 센서
+
+1. 아날로그 홀 센서 : 자기장의 강도에 따라 연속적인 아날로그 전압 또는 전류를 출력
+자기장의 변화에 따라 출력값이 비례적으로 변화, 이를 통해 자기장의 강도를 측정 가능
+
+2. 디지털 홀 센서 : 디지털 홀 센서는 자기장의 강도가 특정 임계값을 초과하거나 미달할 때에만 이산적인 디지털 출력을 생성
+일정한 자기장 임계값을 설정하고, 그 이상 또는 이하의 자기장에 대해 HIGH 또는 LOW와 같은 출력을 제공 
+-> 자기장의 존재 여부를 간단하게 감지 가능
+
+#include <wiringPi.h>
+#include <stdio.h>
+
+#define HALL_PIN 0
+
+int main(void) {
+    // WiringPi 라이브러리 초기화
+    if (wiringPiSetup() == -1) {
+        printf("WiringPi 초기화 실패\n");
+        return 1;
+    }
+
+    // 홀 센서 GPIO 핀 설정
+    pinMode(HALL_PIN, INPUT);
+
+    printf("홀 센서 값 읽기 시작\n");
+
+    while (1) {
+        // 홀 센서 값 읽기
+        int hall_value = digitalRead(HALL_PIN);
+
+        // 값 출력
+        printf("홀 센서 값: %d\n", hall_value);
+
+        // 1초 대기
+        delay(1000);
+    }
+
+    return 0;
+}

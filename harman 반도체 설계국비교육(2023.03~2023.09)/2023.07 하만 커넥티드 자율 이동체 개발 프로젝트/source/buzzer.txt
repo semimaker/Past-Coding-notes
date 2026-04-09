@@ -1,0 +1,102 @@
+수동부저 
+
+수동 부저를 사용하여 다양한 음을 내려면 
+주파수와 지속 시간을 조절하여 소리를 발생시키는 방법을 사용.
+각 음에 해당하는 주파수를 알고 있어야 하며, 
+그에 맞게 소리를 발생시키는 코드를 작성
+
+일반적으로 음계와 주파수 간에는 일정한 관계가 있으며,
+음계에 따라 주파수를 할당하여 소리를 생성 가능
+
+계와 주파수의 예시
+- 도(C)  : 261.63 Hz
+- 레(D)  : 293.66 Hz
+- 미(E)  : 329.63 Hz
+- 파(F)  : 349.23 Hz
+- 솔(G)  : 392.00 Hz
+- 라(A)  : 440.00 Hz
+- 시(B)  : 493.88 Hz
+
+------------------------------------------------------------
+1번코드 - 다양한 음 출력 
+
+#include <wiringPi.h>
+#include <stdio.h>
+
+#define BUZZER_PIN 1
+
+//playTone : 주어진 주파수와 지속 시간에 해당하는 소리를 발생시키는 함수
+void playTone(int frequency, int duration) {   //주파수와 지속시간 입력받기
+    int period = 1000_000 / frequency;
+    int halfPeriod = period / 2;
+    int cycles = frequency * duration / 1000; 
+//cycle : 음의 지속 시간(duration)을 기반으로 소리가 발생해야 할 주기의 횟수를 계산
+
+    for (int i = 0; i < cycles; i++) {
+        digitalWrite(BUZZER_PIN, HIGH);
+        delayMicroseconds(halfPeriod);
+        digitalWrite(BUZZER_PIN, LOW);
+        delayMicroseconds(halfPeriod);
+    }
+}
+
+int main(void) {
+    // WiringPi 라이브러리 초기화
+    if (wiringPiSetup() == -1) {
+        printf("WiringPi 초기화 실패\n");
+        return 1;
+    }
+
+    // 수동 부저 GPIO 핀 설정
+    pinMode(BUZZER_PIN, OUTPUT);
+
+    printf("수동 부저 동작 시작\n");
+
+    // 다양한 음을 재생
+    playTone(261, 500); // 도(C)
+    delay(1000);
+    playTone(293, 500); // 레(D)
+    delay(1000);
+    playTone(329, 500); // 미(E)
+
+    return 0;
+}
+
+
+------------------------------------------------------------
+2번코드 - 한개의 음 출력 
+
+#include <wiringPi.h>
+#include <stdio.h>
+
+#define BUZZER_PIN 1
+
+void buzzerOn(int frequency) {
+    int period = 1000000 / frequency;
+    int halfPeriod = period / 2;
+
+    while (1) {
+        digitalWrite(BUZZER_PIN, HIGH);
+        delayMicroseconds(halfPeriod);
+        digitalWrite(BUZZER_PIN, LOW);
+        delayMicroseconds(halfPeriod);
+    }
+}
+
+int main(void) {
+    // WiringPi 라이브러리 초기화
+    if (wiringPiSetup() == -1) {
+        printf("WiringPi 초기화 실패\n");
+        return 1;
+    }
+
+    // 수동 부저 GPIO 핀 설정
+    pinMode(BUZZER_PIN, OUTPUT);
+
+    printf("수동 부저 동작 시작\n");
+
+    // 특정 주파수의 소리를 발생시킴
+    buzzerOn(1000); // 1000Hz 소리 발생
+
+    return 0;
+}
