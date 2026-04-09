@@ -1,0 +1,53 @@
+#include <stdio.h>
+int main(void) {
+
+	int age = 0;
+	double rate = 0.0;
+
+	scanf_s("%d", &age);//입력되는 나이에 따라서 할인율이 적용
+	if (age < 14)
+
+		if (age < 4)
+			rate = 0.0;
+		else
+			rate = 0.5;
+	else
+		if (age >= 20)
+			rate = 1.0;
+		else
+			rate = 0.75;
+
+	double fee = 1000 * rate;
+	printf("Fee : %d", (int)fee);
+	return 0;
+} //경우의 수를 나누는 2분할 방식으로 하나씩 찾아내는 2분검색 방식을 사용.
+
+////내가 직접 모르는 건 수정하면서 만든 소스 코드.
+//#include <stdio.h>
+//int main(void) {
+//
+//	int age = 0;
+//	int fee = 1000;//버스의 기본요금.
+//
+//	scanf_s("%d", &age);//입력되는 나이에 따라서 할인율이 적용
+//	if (age >= 0 && age <= 3)
+//	{
+//		fee = 0;//100%
+//	}//영유아
+//	else if (age >= 4 && age <= 13)
+//	{
+//		fee = 500;//50%
+//	}//어린이
+//	else if (age >= 14 && age <= 19)
+//	{
+//		fee = 750;//25%
+//	}//청소년
+//	else if (age >= 20)
+//	{
+//		fee = 1000; // 0%
+//	}//성인
+//	printf("Fee : %d\n", fee);//결과값 출력.
+//
+//	return 0;
+//}
+////내가 직접 모르는 건 수정하면서 만든 소스 코드.

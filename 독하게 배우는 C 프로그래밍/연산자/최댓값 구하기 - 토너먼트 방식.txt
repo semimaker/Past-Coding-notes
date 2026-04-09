@@ -1,0 +1,15 @@
+#include <stdio.h>
+
+int main() {
+
+	int max = 0, a, b, c;
+	scanf_s("%d %d %d", &a, &b, &c);
+	max = (a > b) ? a : b;//(a > b) ? a : b;
+	max = (c > max) ? c : max; //사망연산자.
+
+	printf("MAX : %d\n", max); // 30 => max => %d. 
+
+	return 0;
+}
+// 1 2 3 -> 1 > 2 => 2, 3 > 2 -> 3 => c => max => %d.
+

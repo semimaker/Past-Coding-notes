@@ -1,0 +1,23 @@
+#include <stdio.h>
+
+int main(void)
+{
+	for (int i = 0; i < 5; ++i)
+	{
+		for (int j = 0; j < 5; ++j)
+			printf("*");//한 행의 별을 다 찍음.
+		putchar('\n');//이후에는 개행(끊어준다)한다.
+	}
+
+	int length = 1;
+	for (int i = 0; i < 5; ++i)
+	{
+		for (int j = 0; j < length; ++j)
+			printf("*");
+		putchar('\n');
+		length++;//개수가 처음은 1에서 점차 증가한다.
+	}
+
+
+	return 0;
+}

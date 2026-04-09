@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h> //timer 함수 전용.
+
+int g_result[3][3] =
+{
+	//가위 0, 바위 1, 보 2 com
+
+	{0,-1,1}, //하나의 소스로서 만들었다.
+	{1,0,-1},
+	{-1,1,0}
+	//가위 0 -> 0/-1/1(무/패/승)
+	//바위 1
+	//보   2
+};//gloval underbar 
+
+int main(void)
+{
+	int player, com, result = 0; //가위바위보를 위한 세 개의 정수, 가위/바위/보.
+	char szResult[3][10] = { "패", "무", "승" };
+
+	srand(time(NULL)); 
+	//반복된 계산식을 통해서, 하나의 임의의 숫자를 만듬
+	//같은 값이 연달아 나올 것이 연달아 나오지 않게 하기 위해서,
+	//1970년 1월 1일부터 현재까지의 초 단위 및 통계(시간)을 집어넣는다.
+	int value = 0; //뺄값 정이
+
+	while (1)
+	{
+		printf("가위(0), 바위(1), 보(2) 중 하나를 선택하시요. >> \n");
+		scanf_s("%d", &player);
+		com = rand() % 3; //ctrl + D(단축키: 하나의 문장을 통째로 복사)
+	
+		result = g_result[player][com];//기능을 단축시킨 결과값. 
+		printf("player : %d vs com : %d = %s \n", player, com, szResult[result+1]); //승패가 기록이 된다.
+	}
+	
+	system("pause");
+	return 0;
+}//2번 코드 단순화시키기.

@@ -1,0 +1,21 @@
+#include <stdio.h>
+
+int main() {
+
+	int max = 0, input = 0;
+	
+	scanf_s("%d", &input);//10
+	max = input; //max = 10
+
+	scanf_s("%d", &input);//input = 20
+	max = (max > input) ? max : input; //10 > 20 이므로, false(input)이 적용.
+	max = input;// 20 => input => max, max = 20.
+
+	scanf_s("%d", &input); // input = 30
+	max = (max > input) ? max : input;//max = 20 > input = 30,30 => input => max 적용.
+
+	printf("MAX : %d\n", max); // 30 => max => %d. 
+
+	return 0;
+}
+

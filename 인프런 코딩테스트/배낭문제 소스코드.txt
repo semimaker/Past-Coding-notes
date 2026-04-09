@@ -1,0 +1,28 @@
+[인프런 - 코딩테스트 대비] 배낭문제
+#include <iostream> //#include <stdio.h>
+using namespace std;
+int N, K;  //대문자로 변수를 정의하여 에러를 최대한 줄임
+int W[1010];
+int P[1010]; //무게의 배열을 정함
+int DP[1010][10010] = { 0 }; //배낭의 무게 크기
+
+int main(){
+	scanf("%d%d", &N, &K);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d %d", &W[i], &P[i]);
+	}
+	//------------------Soultion---------------------
+
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= K; j++) {
+			//DP[i][j] 관련 점화식.
+			if (j < W[i])
+				DP[i][j] = DP[i - 1][j];
+			else
+				DP[i][j] = max(DP[i - 1][j], DP[i - 1][j - W[i - 1]] + P[i]);
+		}
+	}
+
+	printf("%d", DP[N][K]);
+}
+//백준에서 꽤 유명한 문제, 배낭채우기. 이 코드를 개인적으로 읽어보면서 이해할 수 있도록 할 것. 

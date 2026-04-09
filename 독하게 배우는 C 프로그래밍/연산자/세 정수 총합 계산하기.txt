@@ -1,0 +1,37 @@
+#include <stdio.h>
+
+int main() {
+
+	float input = 0.0;
+	float total = 0.0;
+
+	scanf_s("%f", &input);
+	total += input;
+
+	scanf_s("%f", &input);
+	total += input;
+
+	scanf_s("%f", &input);
+	total += input;
+	
+	printf_s("total : %f\n", total);
+	
+	return 0;
+}//int형에는 %d, float(실수)형에는 %f 케이스 1
+
+/*케이스 2
+#include <stdio.h>
+
+int main() {
+
+	int total = 0;
+
+	total += 1;
+	total += 2;
+	total += 3;
+
+	printf_s("total : %d\n", total);
+
+	return 0;
+}
+*/

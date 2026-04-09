@@ -1,0 +1,14 @@
+#include <stdio.h>
+
+int main(){
+	
+	int age = 0;
+	char name[32] = {0};
+	
+	scanf("%d%*c", &age);
+	gets(name, sizeof(name));
+	
+	printf("%d세 %s\n", age, name);
+	return 0;
+	
+}

@@ -1,0 +1,27 @@
+#include <stdio.h>
+
+int main() {
+
+	int score = 0;
+	scanf_s("%d", &score);
+
+	printf("%s\n", (score >= 80) ? "합격" : "불합격"); //하나의 항.
+	
+	return 0;
+}
+/*
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+
+	int score = 0;
+	scanf_s("%d", &score);
+	
+	
+	printf("%s\n", "합격");
+	printf("%s\n", "불합격"); //하나의 항.
+
+	return 0;
+}
+*/

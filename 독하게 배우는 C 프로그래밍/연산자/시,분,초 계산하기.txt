@@ -1,0 +1,14 @@
+#include <stdio.h>
+
+int main() {
+
+	int input = 4000;
+	scanf_s("%d", &input);
+	int hour = 0, min = 0, sec = 0;
+	printf("%02d:%02d:%02d\n",
+	 input / 3600, 
+	(input % 3600) / 60, 
+	input % 60);
+	
+	return 0;
+}

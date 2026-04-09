@@ -1,0 +1,17 @@
+#include <stdio.h>
+int main(void) {
+
+	int age = 0;
+	int fee = 750;
+
+	scanf_s("%d", &age);
+	if (age = 20)
+	{
+		fee = 1000;
+		age = 20;
+	}
+
+	printf("Age : %d, Fee : %d\n",age ,fee);
+
+	return 0;
+}
